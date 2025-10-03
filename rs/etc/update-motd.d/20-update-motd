@@ -1,0 +1,3 @@
+#!/usr/bin/sh
+
+echo "Hi there! You're connected to the machine" > /etc/motd
