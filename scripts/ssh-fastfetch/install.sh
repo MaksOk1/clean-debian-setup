@@ -1,3 +1,5 @@
-#!/bin/bash
+#!/usr/bin/bash
 
-sudo apt install fastfetch
+sudo apt install fastfetch -y
+
+

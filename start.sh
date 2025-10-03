@@ -8,8 +8,13 @@ fi
 USER=$1
 URL='https://raw.github.com/MaksOk1/clean-debian-setup/main'
 
-$(which bash) ./scripts/base-install.sh $USER
-$(which bash) ./scripts/full-install.sh
-$(which bash) ./scripts/make-changes.sh $USER $URL
-$(which bash) ./scripts/finish.sh $USER
+# Base installation of packages and oh-my-zsh configuration
+$(which bash) ./scripts/base/base-install.sh $USER
+$(which bash) ./scripts/base/full-install.sh
+$(which bash) ./scripts/base/make-changes.sh $USER $URL
+$(which bash) ./scripts/base/finish.sh $USER
 
+# Fastfetch set-up as motd message on login (ssh)
+$(which bash) ./scripts/ssh-fastfetch/install.sh
+$(which bash) ./scripts/ssh-fastfetch/make-changes.sh $URL
+$(which bash) ./scripts/ssh-fastfetch/finish.sh
