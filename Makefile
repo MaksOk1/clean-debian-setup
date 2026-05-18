@@ -1,9 +1,13 @@
-.PHONY: run task
+.PHONY: run task-wrapper task
 
-run: task
+run: task-wrapper
+
+task-wrapper: task
 	@echo -e "\e[32mEnd of task!\e[0"
 
 task:
+	@echo "Updating repo from remote"
+	@git pull
 	@if [ "$$(id -u)" -ne 0 ]; then \
 		echo -e "\e[31mRoot previleges are needed. Authentication needed...\e[0m"; \
 		if command -v sudo >/dev/null 2>&1; then \
