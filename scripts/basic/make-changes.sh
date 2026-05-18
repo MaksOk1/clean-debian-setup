@@ -63,3 +63,5 @@ while true; do
         echo "ERROR: Please enter a valid number."
     fi
 done
+
+echo -e "\e[32mAll system configurations successfully applied!\e[0m"

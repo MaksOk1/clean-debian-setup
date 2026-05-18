@@ -19,11 +19,26 @@ if [ -z "$USER" ]; then
     done
 fi
 
-systemctl restart systemd-logind.service
-systemctl restart ssh
-systemctl restart sshd
+read -rp "Restart 'systemd-logind' service? [Y/n]: " restart_systemd_login_service
+restart_systemd_login_service=${restart_systemd_login_service:-Y}
+if [[ "$restart_systemd_login_service" =~ ^[Yy]$ ]]; then
+    echo "Restarting 'systemd-logind' service..."
+    systemctl restart systemd-logind.service
+    echo -e "\e[31mRestarted service!\e[0m" # Need to make sure that it's correctly restarted. Maybe if pipe falls - echo will not be shown?
+fi
+
+read -rp "Restart 'ssh' and 'sshd' services? [Y/n]: " restart_ssh_services
+restart_ssh_services=${restart_ssh_services:-Y}
+if [[ "$restart_ssh_services" =~ ^[Yy]$ ]]; then
+    systemctl restart ssh
+    systemctl restart sshd
+    echo -e "\e[31mRestarted services!\e[0m"
+fi
+
+echo "Copying '/etc/zsh/zshrc' to root's and user's ($USER's) home directories.."
 cp /etc/zsh/zshrc /root/.zshrc
 cp /etc/zsh/zshrc /home/$USER/.zshrc
+echo -e "\e[31mCopied!\e[0m"
 
 # update-grub
 # update-grub2
