@@ -14,9 +14,9 @@ if [ -z "$USER" ]; then
 fi
 
 apt install sudo apt-transport-https -y
-echo -e "\e[<32>BASE-scope apps successfully installed!\e[0m"
+echo -e "\e[32mBASE-scope apps (packages) successfully installed on system!\e[0m"
 
-echo "Adding new sudoer ($USER)"
+echo "Checking user ($USER) status..."
 
 if id "$USER" &>/dev/null; then
     echo "Choosed user ($USER) exists. Skipping adding user."
@@ -29,8 +29,36 @@ else
         useradd -m "$USER"
         echo "User ($USER) created successfully!"
 
-        if [ -not -z "$PASSWD" ]; then
+        read -p "Set password for user ($USER)? [Y/n]: " set_password
+        set_password=${set_password:-Y}
+
+        if [[ "$set_password" =~ ^[Yy]$ ]]; then
+            if [ -n "$PASSWD" ]; then
+                read -p "Password was given as argument. Use it? [Y/n]: " use_arg_password
+                use_arg_password=${use_arg_password:-Y}
+
+                if [[ ! "$use_arg_password" =~ ^[Yy]$ ]]; then
+                    PASSWD=""
+                fi
+            fi
+
+            if [ -z "$PASSWD" ]; then
+                while true; do
+                    read -s -p "Enter new password for user ($USER): " PASSWD
+                    echo ""
+                    read -s -p "Retype new password: " PASSWD_CONFIRM
+                    echo ""
+
+                    if [ "$PASSWD" = "$PASSWD_CONFIRM" ]; then
+                        break
+                    else
+                        echo -e "\e[31mPasswords do not match. Try again.\e[0m"
+                    fi
+                done
+            fi
+
             echo "$USER:$PASSWD" | chpasswd
+            echo "Password for user ($USER) set successfully!"
         fi
     else
         echo "User ($USER) creation skipped."
@@ -38,7 +66,7 @@ else
     fi
 fi
 
-read -p "Make user ($USER) an admin (sudoer)? [Y/n]: " make_admin
+read -p "Make user ($USER) admin (sudoer)? [Y/n]: " make_admin
 make_admin=${make_admin:-Y}
 
 if [[ "$make_admin" =~ ^[Yy]$ ]]; then
@@ -47,10 +75,10 @@ if [[ "$make_admin" =~ ^[Yy]$ ]]; then
 
     if [[ "$nopasswd_choice" =~ ^[Yy]$ ]]; then
         echo "$USER ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/$USER
-        echo -e "\e[<32>New sudoer added ($USER). 'NOPASSWD' access.\e[0m"
+        echo -e "\e[32mNew sudoer added ($USER). 'NOPASSWD' access.\e[0m"
     else
         echo "$USER ALL=(ALL:ALL) ALL" > "/etc/sudoers.d/$USER"
-        echo -e "\e[<32>New sudoer added ($USER). 'PASSWD' access.\e[0m"
+        echo -e "\e[32mNew sudoer added ($USER). 'PASSWD' access.\e[0m"
     fi
 
     chmod 440 "/etc/sudoers.d/$USER"
