@@ -20,15 +20,17 @@ update-repo:
 
 ensure-root:
 	@if [ "$$(id -u)" -ne 0 ]; then \
-		printf "\e[31mRoot privileges are needed. Authentication needed...\e[0m\n"; \
+		printf "\e[33mRoot privileges are needed. Authentication needed...\e[0m\n"; \
+		export ORIGINAL_USER=$$(whoami); \
+		VARS=$$(env | grep -vE '^(HOME|USER|LOGNAME|SHELL|PATH|MAIL|LS_COLORS|_)='); \
 		if [ -n "$$DISPLAY" ] && command -v pkexec >/dev/null 2>&1; then \
-			pkexec env PATH="$$PATH" $(MAKE) -C "$$PWD" task; \
+			pkexec env PATH="$$PATH" ORIGINAL_USER="$$ORIGINAL_USER" $$VARS $(MAKE) -C "$$PWD" task; \
 		elif command -v sudo >/dev/null 2>&1; then \
-			sudo -E $(MAKE) -C "$$PWD" task; \
+			sudo -E env ORIGINAL_USER="$$ORIGINAL_USER" $$VARS $(MAKE) -C "$$PWD" task; \
 		elif command -v su >/dev/null 2>&1; then \
 			printf "\e[33m[WARNING]: 'pkexec' and 'sudo' are missing. Falling back to 'su'. Environment variables might not be preserved! Exporting environment variables manually...\e[0m\n"; \
 			VARS=$$(env | grep -vE '^(HOME|USER|LOGNAME|SHELL|PATH|MAIL|LS_COLORS|_)='); \
-			su -c "export $$VARS; $(MAKE) -C '$$PWD' task"; \
+			su -c "export ORIGINAL_USER='$$ORIGINAL_USER'; export $$VARS; $(MAKE) -C '$$PWD' task"; \
 		else \
 			printf "\e[31m[ERROR]: None of 'pkexec', 'sudo' or 'su' packages were found for gaining privileges.\e[0m\n"; \
 			exit 1; \

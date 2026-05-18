@@ -9,7 +9,7 @@ fi
 if [ -n "${1:-}" ]; then
     USER=$1
 else
-	USER=${SUDO_USER:-root}
+	USER="${ORIGINAL_USER:-${SUDO_USER:-root}}"
 fi
 PASSWD=${2:-}
 
@@ -129,7 +129,7 @@ URL='https://raw.github.com/MaksOk1/clean-debian-setup/main'
 FOLDER_BASE='./scripts'
 FOLDER_BASIC="$FOLDER_BASE/basic"
 FOLDER_FASTFETCH="$FOLDER_BASE/ssh-fastfetch"
-BASH_PATH=$(which bash)
+BASH_PATH=$(which bash || command -v bash || echo "/usr/bin/bash") # or '/bin/bash'
 
 # Automatically set 'chmod +x'
 echo "Making set-up scripts executable..."
