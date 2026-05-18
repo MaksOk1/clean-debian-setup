@@ -31,4 +31,9 @@ task:
 	@printf "\e[32mCurrent user: $$(whoami) (UID: $$(id -u))\e[0m\n"
 	@chmod +x "$$PWD/start.sh"
 	@printf "\e[32mMade '$$PWD/start.sh' executable. Running it...\e[0m\n"
-	@"$(which bash)" "$$PWD/start.sh"
+	@if command -v bash >/dev/null 2>&1; then \
+		bash "$$PWD/start.sh"; \
+	else \
+		sh "$$PWD/start.sh"; \
+	fi
+# 	@bash "$$PWD/start.sh"
