@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 
 sudo systemctl restart sshd
 sudo systemctl restart ssh
