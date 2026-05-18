@@ -29,15 +29,15 @@ fi
 OMZ_DIR="/usr/share/oh-my-zsh"
 
 echo "Downloading configurations..."
-curl -s "$URL/rs/etc/skel/.zshrc" > /etc/skel/.zshrc
-curl -s "$URL/rs/etc/skel/.zshrc" >> /etc/zsh/zshrc
-curl -s "$URL/rs/etc/systemd/logind.conf" >> /etc/systemd/logind.conf
+curl -sSf "$URL/rs/etc/skel/.zshrc" > /etc/skel/.zshrc
+curl -sSf "$URL/rs/etc/skel/.zshrc" >> /etc/zsh/zshrc
+curl -sSf "$URL/rs/etc/systemd/logind.conf" >> /etc/systemd/logind.conf
 
 mkdir -vp /etc/systemd/sleep.conf.d/
-curl -s "$URL/rs/etc/systemd/sleep.conf.d/nosuspend.conf" > /etc/systemd/sleep.conf.d/nosuspend.conf
+curl -sSf "$URL/rs/etc/systemd/sleep.conf.d/nosuspend.conf" > /etc/systemd/sleep.conf.d/nosuspend.conf
 
 mkdir -vp /etc/ssh/sshd_config.d/
-curl -s "$URL/rs/etc/ssh/sshd_config.d/00-basic.conf" > /etc/ssh/sshd_config.d/00-basic.conf
+curl -sSf "$URL/rs/etc/ssh/sshd_config.d/00-basic.conf" > /etc/ssh/sshd_config.d/00-basic.conf
 
 echo "Setting up Oh My Zsh..."
 if [ -d "$OMZ_DIR/.git" ]; then
@@ -56,7 +56,7 @@ while true; do
     grub_timeout=${grub_timeout:-2}
 
     if [[ "$grub_timeout" =~ ^[0-9]+$ ]]; then
-        mkdir -vp /etc/default/grub
+        mkdir -vp /etc/default
         sed -i "s/GRUB_TIMEOUT=.*$/GRUB_TIMEOUT=$grub_timeout/" /etc/default/grub
         echo "GRUB timeout successfully set to '$grub_timeout' seconds."
         break
