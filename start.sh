@@ -41,9 +41,85 @@ if [ -z "$USER" ]; then
     done
 fi
 
-if id "$USER" &>/dev/null && [ -z "$PASSWD" ]; then
-	read -rsp "Set password for user (press ENTER to skip): " PASSWD
-	echo ""
+if id "$USER" &>/dev/null; then
+	echo "Chosen user ($USER) exists. Skipping adding user."
+
+	if [ -n "$PASSWD" ]; then
+	    read -rp "Password was given as argument. Change password for existing user ($USER) to it? [y/N]: " change_pwd
+		change_pwd=${change_pwd:-N}
+		if [[ ! "$change_pwd" =~ ^[Yy]$ ]]; then
+			PASSWD=""
+		fi
+	else
+		read -rp "Do you want to change password for existing user ($USER)? [y/N]: " change_pwd
+        change_pwd=${change_pwd:-N}
+        if [[ ! "$change_pwd" =~ ^[Yy]$ ]]; then
+            echo "Password change skipped."
+        fi
+	
+	if [[ "${change_pwd:-N}" =~ ^[Yy]$ ]]; then
+        if [ -z "$PASSWD" ]; then
+            while true; do
+                read -rsp "Enter NEW password for user ($USER): " PASSWD
+                echo ""
+                read -rsp "Retype new password: " PASSWD_CONFIRM
+                echo ""
+
+                if [ "$PASSWD" = "$PASSWD_CONFIRM" ]; then
+                    break
+                else
+                    echo -e "\e[31mPasswords do not match. Try again.\e[0m"
+                fi
+            done
+        fi
+
+        echo "$USER:$PASSWD" | chpasswd
+        echo "Password for user ($USER) updated successfully!"
+    fi
+else
+	echo "Chosen user ($USER) does not exist on the system."
+    read -rp "Create user ($USER)? [Y/n]: " create_user
+    create_user=${create_user:-Y}
+
+    if [[ "$create_user" =~ ^[Yy]$ ]]; then
+        useradd -m -s /bin/bash "$USER"
+        echo "User ($USER) created successfully!"
+
+        read -rp "Set password for user ($USER)? [Y/n]: " set_password
+        set_password=${set_password:-Y}
+
+        if [[ "$set_password" =~ ^[Yy]$ ]]; then
+            if [ -n "$PASSWD" ]; then
+                read -rp "Password was given as argument. Use it for new user? [Y/n]: " use_arg_password
+                use_arg_password=${use_arg_password:-Y}
+
+                if [[ ! "$use_arg_password" =~ ^[Yy]$ ]]; then
+                    PASSWD=""
+                fi
+            fi
+
+            if [ -z "$PASSWD" ]; then
+                while true; do
+                    read -rsp "Enter password for new user ($USER): " PASSWD
+                    echo ""
+                    read -rsp "Retype password: " PASSWD_CONFIRM
+                    echo ""
+
+                    if [ "$PASSWD" = "$PASSWD_CONFIRM" ]; then
+                        break
+                    else
+                        echo -e "\e[31mPasswords do not match. Try again.\e[0m"
+                    fi
+                done
+            fi
+
+            echo "$USER:$PASSWD" | chpasswd
+            echo "Password for user ($USER) set successfully!"
+        fi
+    else
+        echo "User ($USER) creation skipped. Stopping script."
+        exit 0
+    fi
 fi
 
 URL='https://raw.github.com/MaksOk1/clean-debian-setup/main'
