@@ -74,19 +74,25 @@ else
     fi
 fi
 
-read -p "Make user ($USER) admin (sudoer)? [Y/n]: " make_admin
-make_admin=${make_admin:-Y}
+if [ -f "/etc/sudoers.d/$USER" ] || id -nG "$USER" | grep -qw "sudo"; then
+    echo "User ($USER) is already an admin."
+    read -p "Do you want to change sudo access type (passwd/nopasswd)? [y/N]: " change_admin
+    make_admin=${change_admin:-N}
+else
+    read -p "Make user ($USER) admin (sudoer)? [Y/n]: " make_admin
+    make_admin=${make_admin:-Y}
+fi
 
 if [[ "$make_admin" =~ ^[Yy]$ ]]; then
     read -p "Enable NOPASSWD for sudoer ($USER)? [y/N]: " nopasswd_choice
     nopasswd_choice=${nopasswd_choice:-N}
 
     if [[ "$nopasswd_choice" =~ ^[Yy]$ ]]; then
-        echo "$USER ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/$USER
-        echo -e "\e[32mNew sudoer added ($USER). 'NOPASSWD' access.\e[0m"
+        echo "$USER ALL=(ALL:ALL) NOPASSWD: ALL" > "/etc/sudoers.d/$USER"
+        echo -e "\e[32mSudoer configured ($USER). 'NOPASSWD' access mode.\e[0m"
     else
         echo "$USER ALL=(ALL:ALL) ALL" > "/etc/sudoers.d/$USER"
-        echo -e "\e[32mNew sudoer added ($USER). 'PASSWD' access.\e[0m"
+        echo -e "\e[32mSudoer configured ($USER). 'PASSWD' access mode.\e[0m"
     fi
 
     chmod 440 "/etc/sudoers.d/$USER"
