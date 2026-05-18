@@ -7,7 +7,16 @@ task-wrapper: task
 
 update-repo:
 	@printf "\e[32mUpdating repo from remote...\e[0m\n"
-	@git pull
+	@OLD_HEAD=$$(git rev-parse HEAD 2>/dev/null); \
+	git pull; \
+	NEW_HEAD=$$(git rev-parse HEAD 2>/dev/null); \
+	if [ "$$OLD_HEAD" != "$$NEW_HEAD" ]; then \
+		printf "\e[34m[NEW COMMITS DOWNLOADED]:\e[0m\n"; \
+		git log --format="%C(yellow)%h%C(reset) - %an, %ar : %s" $$OLD_HEAD..$$NEW_HEAD; \
+	else \
+		printf "\e[34m[ALREADY UP TO DATE]. Current commit:\e[0m\n"; \
+		git log -1 --format="%C(yellow)%h%C(reset) - %an, %ar : %s"; \
+	fi
 
 ensure-root:
 	@if [ "$$(id -u)" -ne 0 ]; then \
@@ -17,8 +26,9 @@ ensure-root:
 		elif command -v sudo >/dev/null 2>&1; then \
 			sudo -E $(MAKE) -C "$$PWD" task; \
 		elif command -v su >/dev/null 2>&1; then \
-			printf "\e[33m[WARNING]: 'pkexec' and 'sudo' are missing. Falling back to 'su'. Environment variables might not be preserved!\e[0m\n"; \
-			su -c "$(MAKE) -C '$$PWD' task"; \
+			printf "\e[33m[WARNING]: 'pkexec' and 'sudo' are missing. Falling back to 'su'. Environment variables might not be preserved! Exporting environment variables manually...\e[0m\n"; \
+			VARS=$$(env | grep -vE '^(HOME|USER|LOGNAME|SHELL|PATH|MAIL|LS_COLORS|_)='); \
+			su -c "export $$VARS; $(MAKE) -C '$$PWD' task"; \
 		else \
 			printf "\e[31m[ERROR]: None of 'pkexec', 'sudo' or 'su' packages were found for gaining privileges.\e[0m\n"; \
 			exit 1; \
@@ -36,4 +46,3 @@ task:
 	else \
 		sh "$$PWD/start.sh"; \
 	fi
-# 	@bash "$$PWD/start.sh"
