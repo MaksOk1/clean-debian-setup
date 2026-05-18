@@ -6,19 +6,19 @@ task-wrapper: task
 	@echo -e "\e[32mEnd of task!\e[0m"
 
 update-repo:
-	@echo "Updating repo from remote..."
+	@echo -e "\e[32mUpdating repo from remote...\e[0m"
 	@git pull
 
 ensure-root:
 	@if [ "$$(id -u)" -ne 0 ]; then \
 		printf "\e[31mRoot privileges are needed. Authentication needed...\e[0m\n"; \
 		if [ -n "$$DISPLAY" ] && command -v pkexec >/dev/null 2>&1; then \
-			pkexec env PATH="$$PATH" $(MAKE) task; \
+			pkexec env PATH="$$PATH" $(MAKE) -C "$$PWD" task; \
 		elif command -v sudo >/dev/null 2>&1; then \
-			sudo -E $(MAKE) task; \
+			sudo -E $(MAKE) -C "$$PWD" task; \
 		elif command -v su >/dev/null 2>&1; then \
 			printf "\e[33m[WARNING]: 'pkexec' and 'sudo' are missing. Falling back to 'su'. Environment variables might not be preserved!\e[0m\n"; \
-			su -c "$(MAKE) task"; \
+			su -c "$(MAKE) -C "$$PWD" task"; \
 		else \
 			printf "\e[31m[ERROR]: None of 'pkexec', 'sudo' or 'su' packages were found for gaining privileges.\e[0m\n"; \
 			exit 1; \
