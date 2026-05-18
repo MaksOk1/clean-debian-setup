@@ -42,9 +42,18 @@ read -p "Make user ($USER) an admin (sudoer)? [Y/n]: " make_admin
 make_admin=${make_admin:-Y}
 
 if [[ "$make_admin" =~ ^[Yy]$ ]]; then
-    echo "$USER ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/$USER
+    read -p "Enable NOPASSWD for sudoer ($USER)? [y/N]: " nopasswd_choice
+    nopasswd_choice=${nopasswd_choice:-N}
+
+    if [[ "$nopasswd_choice" =~ ^[Yy]$ ]]; then
+        echo "$USER ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/$USER
+        echo -e "\e[<32>New sudoer added ($USER). 'NOPASSWD' access.\e[0m"
+    else
+        echo "$USER ALL=(ALL:ALL) ALL" > "/etc/sudoers.d/$USER"
+        echo -e "\e[<32>New sudoer added ($USER). 'PASSWD' access.\e[0m"
+    fi
+
     chmod 440 "/etc/sudoers.d/$USER"
-    echo -e "\e[<32>New sudoer added (NOPASSWD)\e[0m"
 else
     echo "Skipping sudoer configuration."
 fi
