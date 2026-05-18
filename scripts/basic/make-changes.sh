@@ -16,7 +16,7 @@ fi
 curl -s $URL/rs/etc/skel/.zshrc > /etc/skel/.zshrc
 curl -s $URL/rs/etc/skel/.zshrc >> /etc/zsh/zshrc
 curl -s $URL/rs/etc/systemd/logind.conf >> /etc/systemd/logind.conf
-mkdir -v /etc/systemd/sleep.conf.d/
+mkdir -vp /etc/systemd/sleep.conf.d/
 curl -s $URL/rs/etc/systemd/sleep.conf.d/nosuspend.conf > /etc/systemd/sleep.conf.d/nosuspend.conf
 curl -s $URL/rs/etc/ssh/sshd_config.d/00-basic.conf > /etc/ssh/sshd_config.d/00-basic.conf
 
