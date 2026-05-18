@@ -2,7 +2,7 @@
 set -euo pipefail
 
 if [ "$EUID" -ne 0 ]; then
-    echo -e "\e[31mPlease, run script as root (sudo).\e[0m"
+    echo -e "\e[31mPlease, re-run script as root (sudo).\e[0m"
     exit 1
 fi
 
