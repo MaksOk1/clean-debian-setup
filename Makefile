@@ -8,7 +8,7 @@ task-wrapper: task
 	@printf "\e[32mEnd of task!\e[0m\n"
 
 update-repo:
-	@if [ "$(AUTO)" = "1" ]; then \
+	@if [ "$(ARGS)" = "-y" ] || [ "$(AUTO)" = "1" ]; then \
 		ans="Y"; \
 	else \
 		printf "\e[34m[?] Do you want to check and pull updates from remote repository? [Y/n]: \e[0m"; \
@@ -38,13 +38,13 @@ ensure-root:
 		export ORIGINAL_USER=$$(whoami); \
 		VARS=$$(env | grep -vE '^(HOME|USER|LOGNAME|SHELL|PATH|MAIL|LS_COLORS|_)='); \
 		if [ -n "$$DISPLAY" ] && command -v pkexec >/dev/null 2>&1; then \
-			pkexec env PATH="$$PATH" ORIGINAL_USER="$$ORIGINAL_USER" AUTO="$(AUTO)" $$VARS $(MAKE) -C "$$PWD" task AUTO="$(AUTO)"; \
+			pkexec env PATH="$$PATH" ORIGINAL_USER="$$ORIGINAL_USER" AUTO="$(AUTO)" ARGS="$(ARGS)" $$VARS $(MAKE) -C "$$PWD" task AUTO="$(AUTO)" ARGS="$(ARGS)"; \
 		elif command -v sudo >/dev/null 2>&1; then \
-			sudo -E env ORIGINAL_USER="$$ORIGINAL_USER" AUTO="$(AUTO)" $$VARS $(MAKE) -C "$$PWD" task AUTO="$(AUTO)"; \
+			sudo -E env ORIGINAL_USER="$$ORIGINAL_USER" AUTO="$(AUTO)" ARGS="$(ARGS)" $$VARS $(MAKE) -C "$$PWD" task AUTO="$(AUTO)" ARGS="$(ARGS)"; \
 		elif command -v su >/dev/null 2>&1; then \
 			printf "\e[33m[WARNING]: 'pkexec' and 'sudo' are missing. Falling back to 'su'. Environment variables might not be preserved! Exporting environment variables manually...\e[0m\n"; \
 			VARS=$$(env | grep -vE '^(HOME|USER|LOGNAME|SHELL|PATH|MAIL|LS_COLORS|_)='); \
-			su -c "export ORIGINAL_USER='$$ORIGINAL_USER'; export AUTO='$(AUTO)'; export $$VARS; $(MAKE) -C '$$PWD' task AUTO='$(AUTO)'"; \
+			su -c "export ORIGINAL_USER='$$ORIGINAL_USER'; export AUTO='$(AUTO)'; export ARGS='$(ARGS)'; export $$VARS; $(MAKE) -C '$$PWD' task AUTO='$(AUTO)' ARGS='$(ARGS)'"; \
 		else \
 			printf "\e[31m[ERROR]: None of 'pkexec', 'sudo' or 'su' packages were found for gaining privileges.\e[0m\n"; \
 			exit 1; \
@@ -53,12 +53,13 @@ ensure-root:
 	fi
 
 task:
-	@$(MAKE) ensure-root AUTO="$(AUTO)"
+	@$(MAKE) ensure-root AUTO="$(AUTO)" ARGS='$(ARGS)'
 	@printf "\e[32mCurrent user: $$(whoami) (UID: $$(id -u))\e[0m\n"
 	@chmod +x "$$PWD/start.sh"
 	@printf "\e[32mMade '$$PWD/start.sh' executable. Running it...\e[0m\n"
-	@if command -v bash >/dev/null 2>&1; then \
-		AUTO="$(AUTO)" bash "$$PWD/start.sh"; \
+	@IS_AUTO=0; if [ "$(AUTO)" = "1" ] || [ "$(ARGS)" = "-y" ]; then IS_AUTO=1; fi; \
+	if command -v bash >/dev/null 2>&1; then \
+		AUTO="$$IS_AUTO" bash "$$PWD/start.sh"; \
 	else \
-		AUTO="$(AUTO)" sh "$$PWD/start.sh"; \
+		AUTO="$$IS_AUTO" sh "$$PWD/start.sh"; \
 	fi
