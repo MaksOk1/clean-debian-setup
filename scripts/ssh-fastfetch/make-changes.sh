@@ -1,17 +1,35 @@
 #!/usr/bin/env zsh
 set -euo pipefail
 
-URL=$1
+if [ "$EUID" -ne 0 ]; then
+    echo -e "\e[31mPlease, re-run script as root (sudo).\e[0m"
+    exit 1
+fi
+
+URL=${1:-}
+
+if [ -z "$URL" ]; then
+    read -p "Enter base config URL (default: https://raw.github.com/MaksOk1/clean-debian-setup/main): " URL
+    URL=${URL:-https://raw.github.com/MaksOk1/clean-debian-setup/main}
+fi
+
 
 # Fetching needed data for script
-sudo curl -s $URL/rs/etc/skel/.zshrc > /etc/skel/.zshrc
-
+curl -sSf "$URL/rs/etc/skel/.zshrc" > /etc/skel/.zshrc
 
 # Clearing /etc/motd and /etc/issue
-sudo mv /etc/issue /etc/issue__$(date +"%F_%H-%M-%S").bak
-echo "" > /etc/issue
-sudo mv /etc/motd /etc/motd__$(date +"%F_%H-%M-%S").bak
-echo "" > /etc/motd
+if [ -f /etc/issue ]; then
+    mv /etc/issue /etc/issue__$(date +"%F_%H-%M-%S").bak
+else    
+    echo "" > /etc/issue
+    mv /etc/motd /etc/motd__$(date +"%F_%H-%M-%S").bak
+    echo "" > /etc/motd
+fi
 
-sudo mv /etc/zsh/zshrc /etc/zsh/zshrc__$(date +"%F_%H-%M-%S").bak
-sudo mv /etc/zsh/zshenv /etc/zsh/zshenv__$(date +"%F_%H-%M-%S").bak
+mkdir -vp /etc/zsh
+if [ -f /etc/zsh/zshrc ]; then
+    mv /etc/zsh/zshrc /etc/zsh/zshrc__$(date +"%F_%H-%M-%S").bak
+fi
+if [ -f /etc/zsh/zshenv ]; then
+    mv /etc/zsh/zshenv /etc/zsh/zshenv__$(date +"%F_%H-%M-%S").bak
+fi

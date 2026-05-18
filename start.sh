@@ -126,17 +126,34 @@ fi
 URL='https://raw.github.com/MaksOk1/clean-debian-setup/main'
 
 # FEATURES rename !
-FOLDER_BASIC='./scripts/basic'
-FOLDER_FASTFETCH='./scripts/ssh-fastfetch'
+FOLDER_BASE='./scripts'
+FOLDER_BASIC="$FOLDER_BASE/basic"
+FOLDER_FASTFETCH="$FOLDER_BASE/ssh-fastfetch"
+BASH_PATH=$(which bash)
 
+# Automatically set 'chmod +x'
+echo "Making set-up scripts executable..."
+chmod -R +x "$FOLDER_BASE"
+echo -e "\e[32mDone! Executing features set-up...\e[0m"
 
 # Base installation of packages and oh-my-zsh configuration
-$(which bash) "$FOLDER_BASIC/base-install.sh" "$USER" "$PASSWD"
-$(which bash) "$FOLDER_BASIC/full-install.sh"
-$(which bash) "$FOLDER_BASIC/make-changes.sh" "$USER" "$URL"
-$(which bash) "$FOLDER_BASIC/finish.sh" "$USER"
+echo "Set-up of: Basic system feature"
+"$BASH_PATH" "$FOLDER_BASIC/base-install.sh" "$USER" "$PASSWD"
+"$BASH_PATH" "$FOLDER_BASIC/full-install.sh"
+"$BASH_PATH" "$FOLDER_BASIC/make-changes.sh" "$USER" "$URL"
+"$BASH_PATH" "$FOLDER_BASIC/finish.sh" "$USER"
+echo -e "\e[32mSetted-up: Basic system feature!\e[0m"
 
 # Fastfetch set-up as motd message on login (ssh)
-$(which bash) "$FOLDER_FASTFETCH/install.sh"
-$(which bash) "$FOLDER_FASTFETCH/make-changes.sh" "$URL"
-$(which bash) "$FOLDER_FASTFETCH/finish.sh"
+echo "Set-up of: Fastfetch feature"
+"$BASH_PATH" "$FOLDER_FASTFETCH/install.sh"
+"$BASH_PATH" "$FOLDER_FASTFETCH/make-changes.sh" "$URL"
+"$BASH_PATH" "$FOLDER_FASTFETCH/finish.sh"
+echo -e "\e[32mSetted-up: Fastfetch feature!\e[0m"
+
+# Clean-up
+echo -e "\e[32mAll features setted up! Cleaning...\e[0m"
+"$BASH_PATH" "$FOLDER_BASE/cleanup.sh"
+echo -e "\e[32mClean-up completed!\e[0"
+
+echo -e "\e[32mNow it is recommended to reboot the machine!\nAll done!\e[0m"
