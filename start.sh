@@ -6,18 +6,47 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-USER=${1:-}
+if [ -n "${1:-}" ]; then
+    USER=$1
+else
+	USER=${SUDO_USER:-root}
+fi
 PASSWD=${2:-}
 
-if [ -z "$USER" ]; then
-    while true; do
-        read -rp "Enter username of user you want to configure (enter username): " USER
+if [ -n "$USER" ]; then
+	read -rp "Continue for user ($USER)? [Y/n] (Press 'n' to enter another username): " continue_script
+	continue_script=${continue_script:-Y}
 
-        if [ -n "$USER" ]; then
+	if [[ "$continue_script" =~ ^[Yy]$ ]]; then
+		echo "Continuing with user: $USER"
+	else
+		USER=""
+	fi
+fi
+
+if [ -z "$USER" ]; then
+	DEFAULT_USER=${SUDO_USER:-root}
+
+    while true; do
+        read -rp "Enter username of user you want to configure [default: $DEFAULT_USER]: " INPUT_USER
+		INPUT_USER=${INPUT_USER:-$DEFAULT_USER}
+
+        if [ -n "$INPUT_USER" ]; then
+			if [ "$INPUT_USER" = "$DEFAULT_USER" ]; then
+				read -rp "You selected the default user ($DEFAULT_USER) again. Proceed? [Y/n]: " confirm_default
+                confirm_default=${confirm_default:-Y}
+
+				if [[ ! "$confirm_default" =~ ^[Yy]$ ]]; then
+                    echo -e "\e[33mLet's try again.\e[0m"
+                    continue
+                fi
+			fi
+
+			USER=$INPUT_USER
             break
 		fi
 
-        echo -e "\e[31mSet 'USER' variable to continue.\e[0m"
+        echo -e "\e[31mPlease enter a valid username (or set 'USER' variable) to continue.\e[0m"
     done
 fi
 
