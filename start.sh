@@ -32,16 +32,6 @@ if [ -z "$USER" ]; then
 		INPUT_USER=${INPUT_USER:-$DEFAULT_USER}
 
         if [ -n "$INPUT_USER" ]; then
-			if [ "$INPUT_USER" = "$DEFAULT_USER" ]; then
-				read -rp "You selected the default user ($DEFAULT_USER) again. Proceed? [Y/n]: " confirm_default
-                confirm_default=${confirm_default:-Y}
-
-				if [[ ! "$confirm_default" =~ ^[Yy]$ ]]; then
-                    echo -e "\e[33mLet's try again.\e[0m"
-                    continue
-                fi
-			fi
-
 			USER=$INPUT_USER
             break
 		fi
