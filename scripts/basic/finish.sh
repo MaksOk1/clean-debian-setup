@@ -9,7 +9,14 @@ fi
 USER=${1:-}
 
 if [ -z "$USER" ]; then
-    read -p "Finish system for user (enter username): " USER
+    while true; do
+        read -rp "Finish system set-up for user (enter username): " USER
+
+        if [ -n "$USER" ]; then
+            break
+
+        echo -e "\e[31mSet 'USER' variable to continue.\e[0m"
+    done
 fi
 
 systemctl restart systemd-logind.service
@@ -18,10 +25,45 @@ systemctl restart sshd
 cp /etc/zsh/zshrc /root/.zshrc
 cp /etc/zsh/zshrc /home/$USER/.zshrc
 
-#update-grub
-update-grub2
+# update-grub
+# update-grub2
+if command -v update-grub &>/dev/null; then
+    update-grub
+else
+    echo "WARNING: 'update-grub' utility not found, try confirming changes to grub with: 'sudo grub-mkconfig -o /boot/grub/grub.cfg' or 'sudo grub2-mkconfig -o /boot/grub2/grub.cfg' or 'sudo grub2-mkconfig -o /boot/efi/EFI/fedora/grub.cfg'"
+    read -rp "Set-up custom shortcut for 'update-grub' (debian)? [y/N]: " set_debian_shortcut
+    set_debian_shortcut=${set_debian_shortcut:-N}
 
-chsh -s $(which zsh) root
-chsh -s $(which zsh) $USER
+    if [[ "$nopasswd_choice" =~ ^[Yy]$ ]]; then
+        cat << 'EOF' > /usr/sbin/update-grub
+#!/bin/sh
+set -e
+exec grub-mkconfig -o /boot/grub/grub.cfg "$@"
+EOF
+        chmod +x /usr/sbin/update-grub
+    fi
+fi
 
-echo "You can now reboot your machine!"
+read -rp "Change default shell to ZSH for root and user ($USER)? [Y/n]: " change_both_shell
+change_both_shell=${change_both_shell:-Y}
+if [[ "$change_both_shell" =~ ^[Yy]$ ]]; then
+    chsh -s $(which zsh) $USER
+    chsh -s $(which zsh) root
+    echo -e "\e[32mChanged default shell for root and user ($USER)!\e[0m"
+else
+    read -rp "Change default shell to ZSH for user ($USER)? [Y/n]: " change_user_shell
+    change_user_shell=${change_user_shell:-Y}
+    if [[ "$change_user_shell" =~ ^[Yy]$ ]]; then
+        chsh -s $(which zsh) $USER
+        echo -e "\e[32mChanged default shell for user ($USER)!\e[0m"
+    fi
+
+    read -rp "Change default shell to ZSH for root (UID 0)? [Y/n]: " change_root_shell
+    change_root_shell=${change_root_shell:-Y}
+    if [[ "$change_root_shell" =~ ^[Yy]$ ]]; then
+        chsh -s $(which zsh) root
+        echo -e "\e[32mChanged default shell for root (UID 0)!\e[0m"
+    fi
+fi  
+
+echo -e "\e[32mAlright! You can now reboot your machine!\e[0m"

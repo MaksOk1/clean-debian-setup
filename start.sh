@@ -10,8 +10,18 @@ USER=${1:-}
 PASSWD=${2:-}
 
 if [ -z "$USER" ]; then
-	echo 'WARNING: $1 is empty (USER variable).'
-    read -p "Enter username: " USER
+    while true; do
+        read -rp "Enter username of user you want to configure (enter username): " USER
+
+        if [ -n "$USER" ]; then
+            break
+
+        echo -e "\e[31mSet 'USER' variable to continue.\e[0m"
+    done
+fi
+
+if id "$USER" &>/dev/null && [ -z "$PASSWD" ]; then
+	read -rp "Set password for user (press ENTER to skip): " PASSWD
 fi
 
 URL='https://raw.github.com/MaksOk1/clean-debian-setup/main'

@@ -10,7 +10,14 @@ USER=${1:-}
 PASSWD=${2:-}
 
 if [ -z "$USER" ]; then
-    read -p "Set-up system for user (enter username): " USER
+    while true; do
+        read -rp "Set-up system for user (enter username): " USER
+
+        if [ -n "$USER" ]; then
+            break
+
+        echo -e "\e[31mSet 'USER' variable to continue.\e[0m"
+    done
 fi
 
 apt install sudo apt-transport-https -y
