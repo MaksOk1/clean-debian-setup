@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 if [[ -z "$1" ]]; then
   echo 'Error: USER in $1 is empty. Exiting.'

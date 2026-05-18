@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 USER=$1
 URL=$2
