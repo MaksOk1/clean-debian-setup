@@ -1,16 +1,25 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-USER=$1
-URL=$2
+if [ "$EUID" -ne 0 ]; then
+    echo -e "\e[31mPlease, run script as root (sudo).\e[0m"
+    exit 1
+fi
 
-sudo curl -s $URL/rs/etc/skel/.zshrc > /etc/skel/.zshrc
-sudo curl -s $URL/rs/etc/skel/.zshrc >> /etc/zsh/zshrc
-sudo curl -s $URL/rs/etc/systemd/logind.conf >> /etc/systemd/logind.conf
+USER=${1:-}
+URL=${2:-}
+
+if [ -z "$USER" ]; then
+    read -p "Make system changes for user (enter username): " USER
+fi
+
+curl -s $URL/rs/etc/skel/.zshrc > /etc/skel/.zshrc
+curl -s $URL/rs/etc/skel/.zshrc >> /etc/zsh/zshrc
+curl -s $URL/rs/etc/systemd/logind.conf >> /etc/systemd/logind.conf
 mkdir -v /etc/systemd/sleep.conf.d/
-sudo curl -s $URL/rs/etc/systemd/sleep.conf.d/nosuspend.conf > /etc/systemd/sleep.conf.d/nosuspend.conf
-sudo curl -s $URL/rs/etc/ssh/sshd_config.d/00-basic.conf > /etc/ssh/sshd_config.d/00-basic.conf
+curl -s $URL/rs/etc/systemd/sleep.conf.d/nosuspend.conf > /etc/systemd/sleep.conf.d/nosuspend.conf
+curl -s $URL/rs/etc/ssh/sshd_config.d/00-basic.conf > /etc/ssh/sshd_config.d/00-basic.conf
 
 git clone https://github.com/ohmyzsh/ohmyzsh.git /usr/share/oh-my-zsh
 
-sudo sed -i 's/GRUB_TIMEOUT=.*$/GRUB_TIMEOUT=2/' /etc/default/grub
+sed -i 's/GRUB_TIMEOUT=.*$/GRUB_TIMEOUT=2/' /etc/default/grub

@@ -10,7 +10,7 @@ USER=${1:-}
 PASSWD=${2:-}
 
 if [ -z "$USER" ]; then
-    read -p "Enter username: " USER
+    read -p "Set-up system for user (enter username): " USER
 fi
 
 apt install sudo apt-transport-https -y
