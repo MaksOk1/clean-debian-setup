@@ -15,7 +15,7 @@ PASSWD=${2:-}
 
 echo -e "\e[32mDetected 'USER' - ($USER).\e[0m"
 if [ -n "$USER" ]; then
-	read -rp "Continue for user ($USER)? [Y/n] (Press any key to choose other username): " continue_script
+	read -rp "Continue for user ($USER)? [Y/n] (or choose other username): " continue_script
 	continue_script=${continue_script:-Y}
 
 	if [[ "$continue_script" =~ ^[Yy]$ ]]; then
