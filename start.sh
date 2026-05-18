@@ -15,13 +15,15 @@ if [ -z "$USER" ]; then
 
         if [ -n "$USER" ]; then
             break
+		fi
 
         echo -e "\e[31mSet 'USER' variable to continue.\e[0m"
     done
 fi
 
 if id "$USER" &>/dev/null && [ -z "$PASSWD" ]; then
-	read -rp "Set password for user (press ENTER to skip): " PASSWD
+	read -rsp "Set password for user (press ENTER to skip): " PASSWD
+	echo ""
 fi
 
 URL='https://raw.github.com/MaksOk1/clean-debian-setup/main'
@@ -32,12 +34,12 @@ FOLDER_FASTFETCH='./scripts/ssh-fastfetch'
 
 
 # Base installation of packages and oh-my-zsh configuration
-$(which bash) "$FOLDER_BASIC/base-install.sh" $USER $PASSWD
+$(which bash) "$FOLDER_BASIC/base-install.sh" "$USER" "$PASSWD"
 $(which bash) "$FOLDER_BASIC/full-install.sh"
-$(which bash) "$FOLDER_BASIC/make-changes.sh" $USER $URL
-$(which bash) "$FOLDER_BASIC/finish.sh" $USER
+$(which bash) "$FOLDER_BASIC/make-changes.sh" "$USER" "$URL"
+$(which bash) "$FOLDER_BASIC/finish.sh" "$USER"
 
 # Fastfetch set-up as motd message on login (ssh)
 $(which bash) "$FOLDER_FASTFETCH/install.sh"
-$(which bash) "$FOLDER_FASTFETCH/make-changes.sh" $URL
+$(which bash) "$FOLDER_FASTFETCH/make-changes.sh" "$URL"
 $(which bash) "$FOLDER_FASTFETCH/finish.sh"

@@ -15,6 +15,7 @@ if [ -z "$USER" ]; then
 
         if [ -n "$USER" ]; then
             break
+        fi
 
         echo -e "\e[31mSet 'USER' variable to continue.\e[0m"
     done
