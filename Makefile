@@ -1,12 +1,12 @@
 .PHONY: run task-wrapper task update-repo ensure-root
 
-run: task-wrapper
+run: update-repo task-wrapper
 
 task-wrapper: task
-	@echo -e "\e[32mEnd of task!\e[0m"
+	@printf "\e[32mEnd of task!\e[0m\n"
 
 update-repo:
-	@echo -e "\e[32mUpdating repo from remote...\e[0m"
+	@printf "\e[32mUpdating repo from remote...\e[0m\n"
 	@git pull
 
 ensure-root:
@@ -18,7 +18,7 @@ ensure-root:
 			sudo -E $(MAKE) -C "$$PWD" task; \
 		elif command -v su >/dev/null 2>&1; then \
 			printf "\e[33m[WARNING]: 'pkexec' and 'sudo' are missing. Falling back to 'su'. Environment variables might not be preserved!\e[0m\n"; \
-			su -c "$(MAKE) -C "$$PWD" task"; \
+			su -c "$(MAKE) -C '$$PWD' task"; \
 		else \
 			printf "\e[31m[ERROR]: None of 'pkexec', 'sudo' or 'su' packages were found for gaining privileges.\e[0m\n"; \
 			exit 1; \
@@ -26,7 +26,7 @@ ensure-root:
 		exit $$?; \
 	fi
 
-task: update-repo
+task:
 	@$(MAKE) ensure-root
 	@printf "\e[32mCurrent user: $$(whoami) (UID: $$(id -u))\e[0m\n"
 	@chmod +x "$$PWD/start.sh"
