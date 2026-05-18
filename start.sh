@@ -56,6 +56,7 @@ if id "$USER" &>/dev/null; then
         if [[ ! "$change_pwd" =~ ^[Yy]$ ]]; then
             echo "Password change skipped."
         fi
+	fi
 	
 	if [[ "${change_pwd:-N}" =~ ^[Yy]$ ]]; then
         if [ -z "$PASSWD" ]; then
