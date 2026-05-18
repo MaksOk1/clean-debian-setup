@@ -21,18 +21,31 @@ echo "Adding new sudoer ($USER)"
 if id "$USER" &>/dev/null; then
     echo "Choosed user ($USER) exists. Skipping adding user."
 else
-    echo "Choosed user ($USER) not exists on system. Create?"
-    
-    useradd -m $USER
+    echo "Choosed user ($USER) does not exist on system."
+    read -p "Create user ($USER)? [Y/n]: " create_user
+    create_user=${create_user:-Y}
 
-    if [ $? -eq 0]; then
+    if [[ "$create_user" =~ ^[Yy]$ ]]; then
+        useradd -m "$USER"
         echo "User ($USER) created successfully!"
+
+        if [ -not -z "$PASSWD" ]; then
+            echo "$USER:$PASSWD" | chpasswd
+        fi
     else
-        echo "User ($USER) creation failed."
-        exit 1
+        echo "User ($USER) creation skipped."
+        exit 0
     fi
 fi
 
-echo "$USER ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/$USER
-echo -e "\e[<32>New sudoer added (NOPASSWD)\e[0m"
+read -p "Make user ($USER) an admin (sudoer)? [Y/n]: " make_admin
+make_admin=${make_admin:-Y}
+
+if [[ "$make_admin" =~ ^[Yy]$ ]]; then
+    echo "$USER ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/$USER
+    chmod 440 "/etc/sudoers.d/$USER"
+    echo -e "\e[<32>New sudoer added (NOPASSWD)\e[0m"
+else
+    echo "Skipping sudoer configuration."
+fi
 
