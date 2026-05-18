@@ -20,8 +20,8 @@ if [ -z "$USER" ]; then
     done
 fi
 
-read -rp "Restart 'systemd-logind' service? [Y/n]: " restart_systemd_login_service
-restart_systemd_login_service=${restart_systemd_login_service:-Y}
+read -rp "Restart 'systemd-logind' service? [y/N]: " restart_systemd_login_service
+restart_systemd_login_service=${restart_systemd_login_service:-N}
 if [[ "$restart_systemd_login_service" =~ ^[Yy]$ ]]; then
     echo "Restarting 'systemd-logind' service..."
     systemctl restart systemd-logind.service

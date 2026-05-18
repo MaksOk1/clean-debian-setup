@@ -22,7 +22,9 @@ if [ -f /etc/issue ]; then
     mv /etc/issue /etc/issue__$(date +"%F_%H-%M-%S").bak
 else    
     echo "" > /etc/issue
-    mv /etc/motd /etc/motd__$(date +"%F_%H-%M-%S").bak
+    if [ -f /etc/motd ]; then
+        mv /etc/motd /etc/motd__$(date +"%F_%H-%M-%S").bak
+    fi
     echo "" > /etc/motd
 fi
 

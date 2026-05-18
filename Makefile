@@ -7,8 +7,8 @@ task-wrapper: task
 
 task:
 	@echo "Updating repo from remote"
-	@git pull
-	@if [ "$$(id -u)" -ne 0 ]; then \
+	@git pull && \
+	if [ "$$(id -u)" -ne 0 ]; then \
 		echo -e "\e[31mRoot previleges are needed. Authentication needed...\e[0m"; \
 		if command -v sudo >/dev/null 2>&1; then \
 			sudo $(MAKE) $(MAKECMDGOALS); \
