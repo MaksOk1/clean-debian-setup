@@ -40,6 +40,33 @@ if ! command -v make >/dev/null 2>&1; then
     fi
 fi
 
+if ! command -v git >/dev/null 2>&1; then
+    echo -e "\e[33m[WARNING]: 'git' utility is missing, but it is required to continue.\e[0m"
+
+    if [ "$IS_AUTO" = "1" ]; then
+        install_git="Y"
+    else
+        read -rp "Do you want to install 'git' now? [Y/n]: " install_git
+        install_git=${install_git:-Y}
+    fi
+
+    if [[ "$install_git" =~ ^[Yy]$ ]]; then
+        echo -e "\e[32mInstalling git... Authentication required.\e[0m"
+        if sudo apt-get update && sudo apt-get install -y git; then
+            echo -e "\e[32m'git' successfully installed!\e[0m"
+        else
+            echo -e "\e[31m[ERROR]: Failed to install packages. Please install 'git' manually.\e[0m\n"
+            exit 1
+        fi
+    else
+        echo -e "\e[31m[ERROR]: 'git' utility is not installed on your system.\e[0m"
+        echo -e "\e[31m[ERROR]: 'git' is required to run the installer. Stopping.\e[0m"
+        echo -e "\e[33m    Please install it first. On Debian/Ubuntu run:\e[0m"
+        echo -e "\e[33m        sudo apt update && sudo apt install -y git\e[0m"
+        exit 1
+    fi
+fi
+
 if [ "$IS_AUTO" = "1" ]; then
     # make run AUTO=1
     make run ARGS="-y"
