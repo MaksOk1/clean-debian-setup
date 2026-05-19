@@ -193,7 +193,7 @@ echo -e "\e[32mDone! Executing features set-up...\e[0m"
 # Base installation of packages and oh-my-zsh configuration
 echo "Set-up of: Basic system feature"
 "$BASH_PATH" "$FOLDER_BASIC/base-install.sh" "$USER" "$PASSWD"
-"$BASH_PATH" "$FOLDER_BASIC/full-install.sh"
+"$BASH_PATH" "$FOLDER_BASIC/full-install.sh" "$URL"
 "$BASH_PATH" "$FOLDER_BASIC/make-changes.sh" "$USER" "$URL"
 "$BASH_PATH" "$FOLDER_BASIC/finish.sh" "$USER"
 echo -e "\e[32mSetted-up: Basic system feature!\e[0m"

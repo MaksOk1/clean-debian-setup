@@ -17,11 +17,6 @@ USER=${1:-}
 URL=${2:-}
 
 if [ -z "$USER" ]; then
-    # if [ "${AUTO:-0}" = "1" ]; then
-
-    # else
-
-    # fi
     while true; do
         read -rp "Make system changes for user (enter username): " USER
 
@@ -53,7 +48,7 @@ download_file "$URL/rs/etc/skel/.zshrc" /etc/skel/.zshrc
 
 if [ -n "$USER" ]; then
     if id "$USER" &>/dev/null; then
-        USER_HOME=$(eval echo "~$USER")
+        USER_HOME=$(getent passwd "$USER" | cut -d: -f6)
         cp /etc/skel/.zshrc "$USER_HOME/.zshrc" || die "Failed to copy .zshrc to $USER_HOME"
         chown "$USER:$USER" "$USER_HOME/.zshrc" || die "Failed to change owner of .zshrc for $USER"
         log_success ".zshrc configured for user $USER."
