@@ -123,7 +123,7 @@ install-auto: ## - install with helper 'install.sh' in 'AUTO mode'
 	@if command -v bash >/dev/null 2>&1; then \
 		AUTO="1" bash "$$PWD/install.sh" -y; \
 	else \
-		AUTO="1" sh "$$PWD/install.sh -y"; \
+		AUTO="1" sh "$$PWD/install.sh" -y; \
 	fi
 
 pull: ## - pull from remote to local (soft)
