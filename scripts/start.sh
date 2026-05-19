@@ -6,6 +6,38 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
+detect_os() {
+    # 1. Перевірка через стандартний os-release (найбільш надійний метод)
+    if [ -f /etc/os-release ]; then
+        # Читаємо id без завантаження всього файлу в оточення
+        OS_TYPE=$(grep -E '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"')
+    
+    # 2. Резервна перевірка для старих версій Debian/Ubuntu/RHEL
+    elif [ -f /etc/debian_version ]; then
+        OS_TYPE="debian"
+    elif [ -f /etc/redhat-release ]; then
+        OS_TYPE="rhel"
+    
+    # 3. Перевірка для macOS або інших Unix-систем через uname
+    elif command -v uname >/dev/null 2>&1; then
+        local uname_s
+        uname_s=$(uname -s)
+        case "$uname_s" in
+            Darwin) OS_TYPE="macos" ;;
+            FreeBSD) OS_TYPE="freebsd" ;;
+            *) OS_TYPE="unknown" ;;
+        esac
+    else
+        OS_TYPE="unknown"
+    
+    fi
+
+    # Приводимо до нижнього регістру для зручності подальших перевірок
+    OS_TYPE=$(echo "$OS_TYPE" | tr '[:upper:]' '[:lower:]')
+    
+    readonly OS_TYPE
+}
+
 if [ -n "${1:-}" ]; then
     USER=$1
 else
