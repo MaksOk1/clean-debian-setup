@@ -12,11 +12,18 @@ else
 	USER="${ORIGINAL_USER:-${SUDO_USER:-root}}"
 fi
 PASSWD=${2:-}
+export AUTO="${AUTO:-0}"
+IS_AUTO="$AUTO"
 
 echo -e "\e[32mDetected 'USER' - ($USER).\e[0m"
+echo -e "\e[32mMode selected - ($(if [ "$IS_AUTO" = "1" ]; then echo "AUTOMATIC"; else echo "INTERACTIVE"; fi))\e[0m"
 if [ -n "$USER" ]; then
-	read -rp "Continue for user ($USER)? [Y/n] (or choose other username): " continue_script
-	continue_script=${continue_script:-Y}
+    if [ "$IS_AUTO" = "1" ]; then
+		continue_script="Y"
+    else
+        read -rp "Continue for user ($USER)? [Y/n] (or choose other username): " continue_script
+        continue_script=${continue_script:-Y}
+    fi
 
 	if [[ "$continue_script" =~ ^[Yy]$ ]]; then
 		echo -e "\e[32mContinuing with user: $USER!\e[0m"
@@ -28,31 +35,43 @@ fi
 if [ -z "$USER" ]; then
 	DEFAULT_USER=${SUDO_USER:-root}
 
-    while true; do
-        read -rp "Enter username of user you want to configure [default: $DEFAULT_USER]: " INPUT_USER
-		INPUT_USER=${INPUT_USER:-$DEFAULT_USER}
+    if [ "$IS_AUTO" = "1" ]; then
+		USER=$DEFAULT_USER
+    else
+        while true; do
+            read -rp "Enter username of user you want to configure [default: $DEFAULT_USER]: " INPUT_USER
+            INPUT_USER=${INPUT_USER:-$DEFAULT_USER}
 
-        if [ -n "$INPUT_USER" ]; then
-			USER=$INPUT_USER
-            break
-		fi
+            if [ -n "$INPUT_USER" ]; then
+                USER=$INPUT_USER
+                break
+            fi
 
-        echo -e "\e[31mPlease enter a valid username (or set 'USER' variable) to continue.\e[0m"
-    done
+            echo -e "\e[31mPlease enter a valid username (or set 'USER' variable) to continue.\e[0m"
+        done
+    fi
 fi
 
 if id "$USER" &>/dev/null; then
 	echo "Chosen user ($USER) exists. Skipping adding user."
 
 	if [ -n "$PASSWD" ]; then
-	    read -rp "Password was given as argument. Change password for existing user ($USER) to it? [y/N]: " change_pwd
-		change_pwd=${change_pwd:-N}
+        if [ "$IS_AUTO" = "1" ]; then
+            change_pwd="Y"
+        else
+            read -rp "Password was given as argument. Change password for existing user ($USER) to it? [y/N]: " change_pwd
+            change_pwd=${change_pwd:-N}
+        fi
 		if [[ ! "$change_pwd" =~ ^[Yy]$ ]]; then
 			PASSWD=""
 		fi
 	else
-		read -rp "Do you want to change password for existing user ($USER)? [y/N]: " change_pwd
-        change_pwd=${change_pwd:-N}
+        if [ "$IS_AUTO" = "1" ]; then
+            change_pwd="N"
+        else
+            read -rp "Do you want to change password for existing user ($USER)? [y/N]: " change_pwd
+            change_pwd=${change_pwd:-N}
+        fi
         if [[ ! "$change_pwd" =~ ^[Yy]$ ]]; then
             echo "Password change skipped."
         fi
@@ -60,6 +79,11 @@ if id "$USER" &>/dev/null; then
 	
 	if [[ "${change_pwd:-N}" =~ ^[Yy]$ ]]; then
         if [ -z "$PASSWD" ]; then
+            if [ "$IS_AUTO" = "1" ]; then
+                echo -e "\e[31mError: Password change requested in AUTO mode but no password provided.\e[0m"
+                exit 1
+            fi
+
             while true; do
                 read -rsp "Enter NEW password for user ($USER): " PASSWD
                 echo ""
@@ -79,20 +103,32 @@ if id "$USER" &>/dev/null; then
     fi
 else
 	echo "Chosen user ($USER) does not exist on the system."
-    read -rp "Create user ($USER)? [Y/n]: " create_user
-    create_user=${create_user:-Y}
+    if [ "$IS_AUTO" = "1" ]; then
+        create_user="Y"
+    else
+        read -rp "Create user ($USER)? [Y/n]: " create_user
+        create_user=${create_user:-Y}
+    fi
 
     if [[ "$create_user" =~ ^[Yy]$ ]]; then
         useradd -m -s /bin/bash "$USER"
         echo "User ($USER) created successfully!"
 
-        read -rp "Set password for user ($USER)? [Y/n]: " set_password
-        set_password=${set_password:-Y}
+        if [ "$IS_AUTO" = "1" ]; then
+            set_password=$([ -n "$PASSWD" ] && echo "Y" || echo "N")
+        else
+            read -rp "Set password for user ($USER)? [Y/n]: " set_password
+            set_password=${set_password:-Y}
+        fi
 
         if [[ "$set_password" =~ ^[Yy]$ ]]; then
             if [ -n "$PASSWD" ]; then
-                read -rp "Password was given as argument. Use it for new user? [Y/n]: " use_arg_password
-                use_arg_password=${use_arg_password:-Y}
+                if [ "$IS_AUTO" = "1" ]; then
+                    use_arg_password="Y"
+                else
+                    read -rp "Password was given as argument. Use it for new user? [Y/n]: " use_arg_password
+                    use_arg_password=${use_arg_password:-Y}
+                fi
 
                 if [[ ! "$use_arg_password" =~ ^[Yy]$ ]]; then
                     PASSWD=""
@@ -100,6 +136,10 @@ else
             fi
 
             if [ -z "$PASSWD" ]; then
+                if [ "$IS_AUTO" = "1" ]; then
+                    echo -e "\e[31mError: Cannot set empty password for new user in AUTO mode.\e[0m"
+                    exit 1
+                fi
                 while true; do
                     read -rsp "Enter password for new user ($USER): " PASSWD
                     echo ""

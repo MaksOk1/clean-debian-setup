@@ -55,11 +55,11 @@ ensure-root:
 task:
 	@$(MAKE) ensure-root AUTO="$(AUTO)" ARGS='$(ARGS)'
 	@printf "\e[32mCurrent user: $$(whoami) (UID: $$(id -u))\e[0m\n"
-	@chmod +x "$$PWD/start.sh"
+	@chmod +x "$$PWD/run.sh"
 	@printf "\e[32mMade '$$PWD/start.sh' executable. Running it...\e[0m\n"
 	@IS_AUTO=0; if [ "$(AUTO)" = "1" ] || [ "$(ARGS)" = "-y" ]; then IS_AUTO=1; fi; \
 	if command -v bash >/dev/null 2>&1; then \
-		AUTO="$$IS_AUTO" bash "$$PWD/start.sh"; \
+		AUTO="$$IS_AUTO" bash "$$PWD/run.sh"; \
 	else \
-		AUTO="$$IS_AUTO" sh "$$PWD/start.sh"; \
+		AUTO="$$IS_AUTO" sh "$$PWD/run.sh"; \
 	fi
