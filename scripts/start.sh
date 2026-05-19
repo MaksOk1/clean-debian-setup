@@ -180,7 +180,7 @@ fi
 URL='https://raw.github.com/MaksOk1/clean-debian-setup/main'
 
 # FEATURES rename !
-FOLDER_BASE='./scripts'
+FOLDER_BASE='./'
 FOLDER_BASIC="$FOLDER_BASE/basic"
 FOLDER_FASTFETCH="$FOLDER_BASE/ssh-fastfetch"
 BASH_PATH=$(which bash || command -v bash || echo "/usr/bin/bash") # or '/bin/bash'
