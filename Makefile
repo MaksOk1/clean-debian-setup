@@ -63,3 +63,25 @@ task:
 	else \
 		AUTO="$$IS_AUTO" sh "$$PWD/run.sh"; \
 	fi
+
+install:
+	@$(MAKE) ensure-root
+	@printf "\e[32mCurrent user: $$(whoami) (UID: $$(id -u))\e[0m\n"
+	@chmod +x "$$PWD/install.sh"
+	@printf "\e[32mMade '$$PWD/install.sh' executable. Running it...\e[0m\n"
+	@if command -v bash >/dev/null 2>&1; then \
+		bash "$$PWD/install.sh"; \
+	else \
+		sh "$$PWD/install.sh"; \
+	fi
+
+install-auto:
+	@$(MAKE) ensure-root
+	@printf "\e[32mCurrent user: $$(whoami) (UID: $$(id -u))\e[0m\n"
+	@chmod +x "$$PWD/install.sh"
+	@printf "\e[32mMade '$$PWD/install.sh' executable. Running it...\e[0m\n"
+	@if command -v bash >/dev/null 2>&1; then \
+		bash "$$PWD/install.sh -y"; \
+	else \
+		sh "$$PWD/install.sh -y"; \
+	fi

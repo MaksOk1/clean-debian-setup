@@ -104,8 +104,12 @@ if id "$USER" &>/dev/null; then
             done
         fi
 
-        echo "$USER:$PASSWD" | chpasswd
-        echo "Password for user ($USER) updated successfully!"
+        if echo "$USER:$PASSWD" | chpasswd; then
+            echo "Password for user ($USER) updated successfully!"
+        else
+            echo -e "\e[31m[ERROR]: chpasswd failed. Trying fallback to interactive passwd...\e[0m"
+            passwd "$USER"
+        fi
     fi
 else
 	echo "Chosen user ($USER) does not exist on the system."
@@ -160,8 +164,12 @@ else
                 done
             fi
 
-            echo "$USER:$PASSWD" | chpasswd
-            echo "Password for user ($USER) set successfully!"
+            if echo "$USER:$PASSWD" | chpasswd; then
+                echo "Password for user ($USER) set successfully!"
+            else
+                echo -e "\e[31m[ERROR]: chpasswd failed. Trying fallback to interactive passwd...\e[0m"
+                passwd "$USER"
+            fi
         fi
     else
         echo "User ($USER) creation skipped. Stopping script."
