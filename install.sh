@@ -46,8 +46,8 @@ fi
 detect_os
 
 MISSING_DEPS=""
-command -v make >/dev/null 2>&1 || MISSING_DEPS="build-essential"; fi
-command -v git >/dev/null 2>&1 || MISSING_DEPS="${MISSING_DEPS:+$MISSING_DEPS }git"; fi
+command -v make >/dev/null 2>&1 || MISSING_DEPS="build-essential"
+command -v git >/dev/null 2>&1 || MISSING_DEPS="${MISSING_DEPS:+$MISSING_DEPS }git"
 
 if [ -n "$MISSING_DEPS" ]; then
     log_warning "Required utilities are missing, but it is required to continue: ${MISSING_DEPS}."
