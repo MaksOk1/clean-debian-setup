@@ -23,7 +23,7 @@ update-repo:
 		read -r ans; \
 		ans=$${ans:-Y}; \
 	fi; \
-	if [[ "$$ans" =~ ^[Yy]$ ]]; then \
+	if [[ "$$ans" =~ ^[Yy]$$ ]]; then \
 		printf "$(COLOR_GREEN)Updating repo from remote...$(COLOR_END)\n"; \
 		OLD_HEAD=$$(git rev-parse HEAD 2>/dev/null); \
 		git pull; \
