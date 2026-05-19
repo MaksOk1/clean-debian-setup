@@ -1,8 +1,9 @@
-SHELL := /usr/bin/bash
+SHELL := /usr/bin/env bash
 
 MAKEFLAGS += --no-print-directory --silent # or '-s'
 
 .PHONY: run task-wrapper task update-repo ensure-root install install-auto
+.DEFAULT_GOAL := run
 
 COLOR_RED=\\e[31m
 COLOR_GREEN=\\e[32m
@@ -20,12 +21,16 @@ override AUTO := 0
 override ARGS :=
 endif
 
-run: update-repo task-wrapper
+help: ## - show all targets of makefile
+	@echo "Targets:"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sed 's/^.*Makefile://g' | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m make %-15s\033[0m %s\n", $$1, $$2}'
 
-task-wrapper: task
+run: update-repo task-wrapper ## - main run target (INTERACTIVE)
+
+task-wrapper: task ## - (helper) wrapper of 'task' target
 	@printf "$(COLOR_GREEN)End of task!$(COLOR_END)\n"
 
-update-repo:
+update-repo: ## - manual fetch updates from remote and show changes
 	@if [ "$(ARGS)" = "-y" ] || [ "$(AUTO)" = "1" ]; then \
 		ans="Y"; \
 	else \
@@ -50,8 +55,7 @@ update-repo:
 		git log -1 --format="%C(yellow)%h%C(reset) - %an, %ar : %s"; \
 	fi
 
-ensure-root:
-# 		VARS=$$(env | grep -vE '^(HOME|USER|LOGNAME|SHELL|PATH|MAIL|LS_COLORS|MFLAGS|MAKEFLAGS|MAKELEVEL|_)=');
+ensure-root: ## - (helper) root gainer target
 	@if [ "$$(id -u)" -ne 0 ]; then \
 		printf "$(COLOR_YELLOW)Root privileges are needed. Authentication needed...$(COLOR_END)\n"; \
 		export ORIGINAL_USER=$$(whoami); \
@@ -61,7 +65,6 @@ ensure-root:
 			sudo -E env ORIGINAL_USER="$$ORIGINAL_USER" AUTO="$(AUTO)" ARGS="$(ARGS)" $(MAKE) -C "$$PWD" task AUTO="$(AUTO)" ARGS="$(ARGS)"; \
 		elif command -v su >/dev/null 2>&1; then \
 			printf "$(COLOR_YELLOW)[WARNING]: 'pkexec' and 'sudo' are missing. Falling back to 'su'. Environment variables might not be preserved! Exporting environment variables manually...$(COLOR_END)\n"; \
-			VARS=$$(env | grep -vE '^(HOME|USER|LOGNAME|SHELL|PATH|MAIL|LS_COLORS|_)='); \
 			su -c "export ORIGINAL_USER='$$ORIGINAL_USER'; export AUTO='$(AUTO)'; export ARGS='$(ARGS)'; $(MAKE) -C '$$PWD' task AUTO='$(AUTO)' ARGS='$(ARGS)'"; \
 		else \
 			printf "$(COLOR_RED)[ERROR]: None of 'pkexec', 'sudo' or 'su' packages were found for gaining privileges.$(COLOR_END)\n"; \
@@ -70,7 +73,7 @@ ensure-root:
 		exit $$?; \
 	fi
 
-task:
+task: ## - core task
 	@if [ "$$(id -u)" -ne 0 ]; then \
 		$(MAKE) ensure-root AUTO="$(AUTO)" ARGS='$(ARGS)'; \
 	else \
@@ -85,7 +88,7 @@ task:
 		fi; \
 	fi
 
-install:
+install: ## - install with helper 'install.sh' in 'INTERACTIVE mode'
 	@$(MAKE) update-repo
 	@$(MAKE) ensure-root AUTO="0" ARGS=""
 	@printf "$(COLOR_GREEN)Current user: $$(whoami) (UID: $$(id -u))$(COLOR_END)\n"
@@ -97,7 +100,7 @@ install:
 		AUTO="0" sh "$$PWD/install.sh"; \
 	fi
 
-install-auto:
+install-auto: ## - install with helper 'install.sh' in 'AUTO mode'
 	@$(MAKE) update-repo
 	@$(MAKE) ensure-root AUTO="1" ARGS="-y"
 	@printf "$(COLOR_GREEN)Current user: $$(whoami) (UID: $$(id -u))$(COLOR_END)\n"
@@ -109,14 +112,14 @@ install-auto:
 		AUTO="1" sh "$$PWD/install.sh -y"; \
 	fi
 
-pull:
+pull: ## - pull from remote to local (soft)
 	@git pull
 
-pull-force:
+pull-force: ## - pull from remote to local (overwrite)
 	@git fetch --all
 	@git reset --hard origin/$$(git branch --show-current)
 
-reclone:
+reclone: ## - delete cloned repo and clone again
 	@export REPO_NAME=$$(basename `git rev-parse --show-toplevel 2>/dev/null`) ; \
 	export REPO_URL=$$(git config --get remote.origin.url 2>/dev/null) ; \
 	if [ -z "$$REPO_NAME" ] || [ -z "$$REPO_URL" ]; then \
