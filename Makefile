@@ -1,6 +1,8 @@
+SHELL := /usr/bin/bash
+
 MAKEFLAGS += --no-print-directory --silent # or '-s'
 
-.PHONY: run task-wrapper task update-repo ensure-root
+.PHONY: run task-wrapper task update-repo ensure-root install install-auto
 
 COLOR_RED=\\e[31m
 COLOR_GREEN=\\e[32m
@@ -42,7 +44,7 @@ ensure-root:
 	@if [ "$$(id -u)" -ne 0 ]; then \
 		printf "$(COLOR_YELLOW)Root privileges are needed. Authentication needed...$(COLOR_END)\n"; \
 		export ORIGINAL_USER=$$(whoami); \
-		VARS=$$(env | grep -vE '^(HOME|USER|LOGNAME|SHELL|PATH|MAIL|LS_COLORS|_)='); \
+		VARS=$$(env | grep -vE '^(HOME|USER|LOGNAME|SHELL|PATH|MAIL|LS_COLORS|MFLAGS|MAKEFLAGS|MAKELEVEL|_)='); \
 		if [ -n "$$DISPLAY" ] && command -v pkexec >/dev/null 2>&1; then \
 			pkexec env PATH="$$PATH" ORIGINAL_USER="$$ORIGINAL_USER" AUTO="$(AUTO)" ARGS="$(ARGS)" $$VARS $(MAKE) -C "$$PWD" task AUTO="$(AUTO)" ARGS="$(ARGS)"; \
 		elif command -v sudo >/dev/null 2>&1; then \
