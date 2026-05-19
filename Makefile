@@ -102,8 +102,6 @@ task: ## - core task
 
 install: ## - install with helper 'install.sh' in 'INTERACTIVE mode'
 	@$(MAKE) update-repo
-	@$(MAKE) ensure-root AUTO="0" ARGS=""
-	@printf "$(COLOR_GREEN)Current user: $$(whoami) (UID: $$(id -u))$(COLOR_END)\n"
 	@chmod +x "$$PWD/install.sh"
 	@printf "$(COLOR_GREEN)Made '$$PWD/install.sh' executable. Running it...$(COLOR_END)\n"
 	@if command -v bash >/dev/null 2>&1; then \
@@ -114,8 +112,6 @@ install: ## - install with helper 'install.sh' in 'INTERACTIVE mode'
 
 install-auto: ## - install with helper 'install.sh' in 'AUTO mode'
 	@$(MAKE) update-repo
-	@$(MAKE) ensure-root AUTO="1" ARGS="-y"
-	@printf "$(COLOR_GREEN)Current user: $$(whoami) (UID: $$(id -u))$(COLOR_END)\n"
 	@chmod +x "$$PWD/install.sh"
 	@printf "$(COLOR_GREEN)Made '$$PWD/install.sh' executable. Running it...$(COLOR_END)\n"
 	@if command -v bash >/dev/null 2>&1; then \

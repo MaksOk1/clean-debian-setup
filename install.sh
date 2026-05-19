@@ -60,6 +60,8 @@ if [ -n "$MISSING_DEPS" ]; then
     fi
 fi
 
+export ORIGINAL_USER="$USER"
+
 if [ "$IS_AUTO" = "1" ]; then
     make run AUTO=1 ARGS="-y"
 else
