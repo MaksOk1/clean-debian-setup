@@ -106,7 +106,7 @@ task: ## - core task
 		fi; \
 	fi
 
-install: update-repo ## - install with helper 'install.sh' in 'INTERACTIVE mode'
+install: ## - install with helper 'install.sh' in 'INTERACTIVE mode'
 	@chmod +x "$$PWD/install.sh"
 	@printf "$(COLOR_GREEN)Made '$$PWD/install.sh' executable. Running it...$(COLOR_END)\n"
 	@if command -v bash >/dev/null 2>&1; then \
@@ -115,7 +115,7 @@ install: update-repo ## - install with helper 'install.sh' in 'INTERACTIVE mode'
 		AUTO="0" sh "$$PWD/install.sh"; \
 	fi
 
-install-auto: update-repo ## - install with helper 'install.sh' in 'AUTO mode'
+install-auto: ## - install with helper 'install.sh' in 'AUTO mode'
 	@chmod +x "$$PWD/install.sh"
 	@printf "$(COLOR_GREEN)Made '$$PWD/install.sh' executable. Running it...$(COLOR_END)\n"
 	@if command -v bash >/dev/null 2>&1; then \

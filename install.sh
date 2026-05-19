@@ -29,28 +29,33 @@ if [ -n "$MISSING_DEPS" ]; then
     if [[ "$install_deps" =~ ^[Yy]$ ]]; then
         echo -e "\e[32mInstalling dependencies (${MISSING_DEPS})...\e[0m"
 
+        APT_CMD="apt-get update && apt-get install -y $MISSING_DEPS"
+
         if command -v sudo >/dev/null 2>&1; then
             echo -e "\e[32mAuthentication via 'sudo' required.\e[0m"
-            if sudo apt-get update && sudo apt-get install -y $MISSING_DEPS; then
-                echo -e "\e[32mDependencies successfully installed (via 'sudo')!\e[0m"
-            else
-                echo -e "\e[31m[ERROR]: Failed to install packages (via 'sudo').\e[0m"
-                exit 1
-            fi
+            # if sudo apt-get update && sudo apt-get install -y $MISSING_DEPS; then
+            #     echo -e "\e[32mDependencies successfully installed (via 'sudo')!\e[0m"
+            # else
+            #     echo -e "\e[31m[ERROR]: Failed to install packages (via 'sudo').\e[0m"
+            #     exit 1
+            # fi
+            sudo bash -c "$APT_CMD" || { echo -e "\e[31m[ERROR]: Failed.\e[0m"; exit 1; }
         elif command -v su >/dev/null 2>&1; then
             echo -e "\e[33m[WARNING]: 'sudo' is missing. Using 'su'. Root password required!\e[0m"
-            APT_Y="" && if [ "$IS_AUTO" = "1" ]; then APT_Y="-y"; fi
-            if su -c "apt-get update && apt-get install $APT_Y $MISSING_DEPS"; then
-                echo -e "\e[32mDependencies successfully installed (via 'su')!\e[0m"
-            else
-                echo -e "\e[31m[ERROR]: Failed to install packages (via 'su').\e[0m"
-                exit 1
-            fi
+            # APT_Y="" && if [ "$IS_AUTO" = "1" ]; then APT_Y="-y"; fi
+            # if su -c "apt-get update && apt-get install $APT_Y $MISSING_DEPS"; then
+            #     echo -e "\e[32mDependencies successfully installed (via 'su')!\e[0m"
+            # else
+            #     echo -e "\e[31m[ERROR]: Failed to install packages (via 'su').\e[0m"
+            #     exit 1
+            # fi
+            su -c "$APT_CMD" || { echo -e "\e[31m[ERROR]: Failed.\e[0m"; exit 1; }
         else
             echo -e "\e[31m[ERROR]: Neither 'sudo' nor 'su' were found to elevate privileges. Cannot install dependencies.\e[0m"
             echo -e "\e[31m[ERROR]: Failed to install packages. Please install missing ones manually ($MISSING_DEPS).\e[0m\n"
             exit 1
         fi
+        echo -e "\e[32mDependencies successfully installed!\e[0m"
     else
         echo -e "\e[31m[ERROR]: Core utilities are not installed on your system.\e[0m"
         echo -e "\e[33m    Please install it first. On Debian/Ubuntu run:\e[0m"
@@ -60,7 +65,8 @@ if [ -n "$MISSING_DEPS" ]; then
     fi
 fi
 
-export ORIGINAL_USER="$USER"
+# export ORIGINAL_USER="$USER"
+export ORIGINAL_USER="${SUDO_USER:-$(logname 2>/dev/null || whoami)}"
 
 if [ "$IS_AUTO" = "1" ]; then
     make run AUTO=1 ARGS="-y"

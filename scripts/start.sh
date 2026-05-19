@@ -58,7 +58,7 @@ if [ -z "$USER" ]; then
     fi
 fi
 
-if id "$USER" &>/dev/null; then
+if id "$USER" &>/dev/null || false; then
 	echo "Chosen user ($USER) exists. Skipping adding user."
 
 	if [ -n "$PASSWD" ]; then
