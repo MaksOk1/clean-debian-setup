@@ -121,4 +121,5 @@ reclone:
 	export REPO_URL=$$(git config --get remote.origin.url) ; \
 	cd ../ && \
 	rm -rf ./$$REPO_NAME && \
-	git clone $$REPO_URL $$REPO_NAME
+	git clone $$REPO_URL $$REPO_NAME && \
+	cd ./$$REPO_NAME
