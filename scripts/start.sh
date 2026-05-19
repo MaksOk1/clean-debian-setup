@@ -98,11 +98,12 @@ fi
 if id "$USER" &>/dev/null; then
 	log_info "Chosen user ($USER) exists. Skipping user creation."
 
-    change_pwd="Y"
+    change_pwd="N"
     if [ "$AUTO" = "0" ]; then
         prompt_txt="Do you want to change password for existing user ($USER)? [y/N]: "
         [ -n "$PASSWD" ] && prompt_txt="Password given as argument. Change password for existing user ($USER) to it? [y/N]: "    
-        read -rp "$prompt_txt" change_pwd
+        read -rp "[?] $prompt_txt" change_pwd
+        change_pwd=${change_pwd:-N}
     elif [ "$AUTO" = "1" ] && [ -n "$PASSWD" ]; then
         change_pwd="Y"
     fi
@@ -110,7 +111,7 @@ if id "$USER" &>/dev/null; then
     if [[ "$change_pwd" =~ ^[Yy]$ ]]; then
         if [ -z "$PASSWD" ]; then
             [ "$AUTO" = "1" ] && die "Password change requested in AUTO mode but no password provided."
-            PASSWD=$(read_secure_password "Enter NEW password for user ($USER): ")
+            PASSWD=$(read_secure_password "[!] Enter NEW password for user ($USER): ")
 		fi
         echo "$USER:$PASSWD" | chpasswd || passwd "$USER"
         log_success "Password for user ($USER) updated successfully!"
@@ -121,7 +122,7 @@ if id "$USER" &>/dev/null; then
 else
 	log_warning "Chosen user ($USER) does not exist on the system."
     create_user="Y"
-    [ "$AUTO" = "0" ] && read -rp "Create user ($USER)? [Y/n]: " create_user
+    [ "$AUTO" = "0" ] && read -rp "[?] Create user ($USER)? [Y/n]: " create_user
 
     if [[ "${create_user:-Y}" =~ ^[Yy]$ ]]; then
         useradd -m -s /bin/bash "$USER"
@@ -144,7 +145,7 @@ else
             if echo "$USER:$PASSWD" | chpasswd; then
                 log_success "Password for user ($USER) set successfully!"
             else
-                log_err "'chpasswd' failed. Trying fallback to interactive passwd. Enter password for user ($USER)"
+                log_err "'chpasswd' failed. Trying fallback to interactive passwd. Enter password for user ($USER)..."
                 passwd "$USER"
             fi
         fi
@@ -190,4 +191,5 @@ log_info "Cleaning up..."
 "$BASH_PATH" "$FOLDER_BASE/cleanup.sh"
 log_success "Clean-up completed!"
 
-log_warning "Now it is recommended to reboot the machine!\nAll done!"
+log_warning "Now it is recommended to reboot the machine!"
+log_success "All done!"
