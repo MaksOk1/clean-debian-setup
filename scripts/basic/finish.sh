@@ -56,14 +56,12 @@ fi
 
 if [[ "$restart_ssh_services" =~ ^[Yy]$ ]]; then
     for service in ssh sshd; do
-        if systemctl list-unit-files | grep -q "^${service}.service"; then
+        if systemctl is-active "$service" >/dev/null 2>&1 || systemctl is-enabled "$service" >/dev/null 2>&1; then
             systemctl restart "$service"
             log_info "Service '$service' restarted."
-        else
-            log_warning "Service '$service' not restarted. Continuing..."
         fi
     done
-    log_success "SSH services restarted!"
+        log_success "SSH services restarted!"
 fi
 
 log_info "Copying '/etc/zsh/zshrc' to root's and user's ($USER's) home directories.."

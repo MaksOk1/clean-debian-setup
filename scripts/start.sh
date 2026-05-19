@@ -5,6 +5,8 @@ readonly RED='\033[0;31m'
 readonly GREEN='\033[0;32m'
 readonly YELLOW='\033[1;33m'
 readonly BLUE='\033[0;34m'
+readonly MAGENTA='\033[0;35m'
+readonly CYAN='\033[0;36m'
 readonly NC='\033[0m'
 
 log_info()    { echo -e "${BLUE}[INFO]${NC} $1"; }
@@ -16,18 +18,14 @@ die()         { log_err "$1"; exit 1; }
 [ "$EUID" -ne 0 ] && die "Please, re-run script as root (sudo)."
 
 detect_os() {
-    # 1. Перевірка через стандартний os-release (найбільш надійний метод)
     if [ -f /etc/os-release ]; then
-        # Читаємо id без завантаження всього файлу в оточення
         OS_TYPE=$(grep -E '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"')
     
-    # 2. Резервна перевірка для старих версій Debian/Ubuntu/RHEL
     elif [ -f /etc/debian_version ]; then
         OS_TYPE="debian"
     elif [ -f /etc/redhat-release ]; then
         OS_TYPE="rhel"
     
-    # 3. Перевірка для macOS або інших Unix-систем через uname
     elif command -v uname >/dev/null 2>&1; then
         local uname_s
         uname_s=$(uname -s)
@@ -38,43 +36,50 @@ detect_os() {
         esac
     else
         OS_TYPE="unknown"
-    
     fi
 
-    # Приводимо до нижнього регістру для зручності подальших перевірок
     OS_TYPE=$(echo "$OS_TYPE" | tr '[:upper:]' '[:lower:]')
     
     readonly OS_TYPE
 }
 
-if [ -n "${1:-}" ]; then
-    USER=$1
-else
-	USER="${ORIGINAL_USER:-${SUDO_USER:-root}}"
-fi
-PASSWD=${2:-}
+read_secure_password() {
+    local prompt_msg=$1
+    while true; do
+        read -rsp "$prompt_msg" pass1
+        echo ""
+        read -rsp "Retype password to confirm: " pass2
+        echo ""
+        if [ "$pass1" = "$pass2" ]; then
+            echo "$pass1"
+            return 0
+        fi
+        log_err "Passwords do not match. Try again."
+    done
+}
+
+detect_os
 export AUTO="${AUTO:-0}"
-IS_AUTO="$AUTO"
 
-if [ "$IS_AUTO" = "1" ]; then
-    MODE_TEXT="\e[35mAUTOMATIC\e[32m"
-else
-    MODE_TEXT="\e[36mINTERACTIVE\e[32m"
+
+USER="${1:-${ORIGINAL_USER:-${SUDO_USER:-root}}}"
+PASSWD=${2:-}
+
+if [ -z "$USER" ] || [ "$USER" = "root" ]; then
+    USER="${SUDO_USER:-root}"
 fi
 
-echo -e "\e[32mDetected 'USER' - ($USER).\e[0m"
-echo -e "\e[32mMode selected - ($MODE_TEXT).\e[0m"
-if [ -n "$USER" ]; then
-    if [ "$IS_AUTO" = "1" ]; then
-		continue_script="Y"
-    else
-        read -rp "Continue for user ($USER)? [Y/n] (or choose other username): " continue_script
-        continue_script=${continue_script:-Y}
-    fi
+MODE_TEXT="${CYAN}INTERACTIVE${NC}"
 
-	if [[ "$continue_script" =~ ^[Yy]$ ]]; then
-		echo -e "\e[32mContinuing with user: $USER!\e[0m"
-	else
+[ "$AUTO" = "1" ] && MODE_TEXT="${MAGENTA}AUTOMATIC${NC}"
+
+log_info "Detected 'USER' - ($USER)."
+log_info "Mode selected - ($MODE_TEXT)."
+
+if [ -n "$USER" ] && [ "$AUTO" = "0" ]; then
+    read -rp "[?] Continue for user ($USER)? [Y/n] (or choose other username): " continue_script
+
+	if [[ ! "${continue_script:-Y}" =~ ^[Yy]$ ]]; thens
 		USER=""
 	fi
 fi
@@ -82,7 +87,7 @@ fi
 if [ -z "$USER" ]; then
 	DEFAULT_USER=${SUDO_USER:-root}
 
-    if [ "$IS_AUTO" = "1" ]; then
+    if [ "$AUTO" = "1" ]; then
 		USER=$DEFAULT_USER
     else
         while true; do
@@ -103,7 +108,7 @@ if id "$USER" &>/dev/null || false; then
 	echo "Chosen user ($USER) exists. Skipping adding user."
 
 	if [ -n "$PASSWD" ]; then
-        if [ "$IS_AUTO" = "1" ]; then
+        if [ "$AUTO" = "1" ]; then
             change_pwd="Y"
         else
             read -rp "Password was given as argument. Change password for existing user ($USER) to it? [y/N]: " change_pwd
@@ -113,7 +118,7 @@ if id "$USER" &>/dev/null || false; then
 			PASSWD=""
 		fi
 	else
-        if [ "$IS_AUTO" = "1" ]; then
+        if [ "$AUTO" = "1" ]; then
             change_pwd="N"
         else
             read -rp "Do you want to change password for existing user ($USER)? [y/N]: " change_pwd
@@ -126,7 +131,7 @@ if id "$USER" &>/dev/null || false; then
 	
 	if [[ "${change_pwd:-N}" =~ ^[Yy]$ ]]; then
         if [ -z "$PASSWD" ]; then
-            if [ "$IS_AUTO" = "1" ]; then
+            if [ "$AUTO" = "1" ]; then
                 echo -e "\e[31mError: Password change requested in AUTO mode but no password provided.\e[0m"
                 exit 1
             fi
@@ -154,7 +159,7 @@ if id "$USER" &>/dev/null || false; then
     fi
 else
 	echo "Chosen user ($USER) does not exist on the system."
-    if [ "$IS_AUTO" = "1" ]; then
+    if [ "$AUTO" = "1" ]; then
         create_user="Y"
     else
         read -rp "Create user ($USER)? [Y/n]: " create_user
@@ -165,7 +170,7 @@ else
         useradd -m -s /bin/bash "$USER"
         echo "User ($USER) created successfully!"
 
-        if [ "$IS_AUTO" = "1" ]; then
+        if [ "$AUTO" = "1" ]; then
             set_password=$([ -n "$PASSWD" ] && echo "Y" || echo "N")
         else
             read -rp "Set password for user ($USER)? [Y/n]: " set_password
@@ -174,7 +179,7 @@ else
 
         if [[ "$set_password" =~ ^[Yy]$ ]]; then
             if [ -n "$PASSWD" ]; then
-                if [ "$IS_AUTO" = "1" ]; then
+                if [ "$AUTO" = "1" ]; then
                     use_arg_password="Y"
                 else
                     read -rp "Password was given as argument. Use it for new user? [Y/n]: " use_arg_password
@@ -187,7 +192,7 @@ else
             fi
 
             if [ -z "$PASSWD" ]; then
-                if [ "$IS_AUTO" = "1" ]; then
+                if [ "$AUTO" = "1" ]; then
                     echo -e "\e[31mError: Cannot set empty password for new user in AUTO mode.\e[0m"
                     exit 1
                 fi
