@@ -35,8 +35,16 @@ OMZ_DIR="/usr/share/oh-my-zsh"
 
 echo "Downloading configurations..."
 curl -sSf "$URL/rs/etc/skel/.zshrc" > /etc/skel/.zshrc
-curl -sSf "$URL/rs/etc/skel/.zshrc" >> /etc/zsh/zshrc
-curl -sSf "$URL/rs/etc/systemd/logind.conf" >> /etc/systemd/logind.conf
+
+if [ -n "$USER" ] && id "$USER" &>/dev/null; then
+    USER_HOME=$(eval echo "~$USER")
+    cp /etc/skel/.zshrc "$USER_HOME/.zshrc"
+    chown "$USER:$USER" "$USER_HOME/.zshrc"
+fi
+
+# curl -sSf "$URL/rs/etc/skel/.zshrc" >> /etc/zsh/zshrc
+mkdir -vp /etc/systemd/logind.conf.d/
+curl -sSf "$URL/rs/etc/systemd/logind.conf" > /etc/systemd/logind.conf.d/custom.conf
 
 mkdir -vp /etc/systemd/sleep.conf.d/
 curl -sSf "$URL/rs/etc/systemd/sleep.conf.d/nosuspend.conf" > /etc/systemd/sleep.conf.d/nosuspend.conf
@@ -56,6 +64,11 @@ else
 fi
 
 echo "Updating GRUB timeout..."
+# if grep -q "^GRUB_TIMEOUT=" /etc/default/grub; then
+#     sed -i "s/^GRUB_TIMEOUT=.*$/GRUB_TIMEOUT=$grub_timeout/" /etc/default/grub
+# else
+#     echo "GRUB_TIMEOUT=$grub_timeout" >> /etc/default/grub
+# fi
 while true; do
     if [ "${AUTO:-0}" = "1" ]; then
         grub_timeout=2
