@@ -2,7 +2,7 @@ SHELL := /usr/bin/env bash
 
 MAKEFLAGS += --no-print-directory --silent # or '-s'
 
-.PHONY: run task-wrapper task update-repo ensure-root install install-auto
+.PHONY: run auto task-wrapper task update-repo ensure-root install install-auto update upgrade pull pull-force reclone help
 .DEFAULT_GOAL := run
 
 COLOR_RED=\\e[31m
@@ -11,15 +11,19 @@ COLOR_YELLOW=\\e[33m
 COLOR_BLUE=\\e[34m
 COLOR_END=\\e[0m
 
-ifeq ($(ARGS),-y)
+ifneq ($(filter auto install-auto,$(MAKECMDGOALS)),)
     override AUTO := 1
-endif
-ifeq ($(AUTO),1)
+    override ARGS := -y
+else ifeq ($(ARGS),-y)
+    override AUTO := 1
+else ifeq ($(AUTO),1)
     override ARGS := -y
 else
-override AUTO := 0
-override ARGS :=
+	override AUTO := 0
+	override ARGS :=
 endif
+
+GOAL_TARGET := $(if $(MAKECMDGOALS),$(MAKECMDGOALS),$(.DEFAULT_GOAL))
 
 help: ## - show all targets of makefile
 	@echo "Targets:"
@@ -67,12 +71,12 @@ ensure-root: ## - (helper) root gainer target
 		printf "$(COLOR_YELLOW)Root privileges are needed. Authentication needed...$(COLOR_END)\n"; \
 		export ORIGINAL_USER=$$(whoami); \
 		if [ -n "$$DISPLAY" ] && command -v pkexec >/dev/null 2>&1; then \
-			pkexec env PATH="$$PATH" ORIGINAL_USER="$$ORIGINAL_USER" AUTO="$(AUTO)" ARGS="$(ARGS)" $(MAKE) -C "$$PWD" task AUTO="$(AUTO)" ARGS="$(ARGS)"; \
+			pkexec env PATH="$$PATH" ORIGINAL_USER="$$ORIGINAL_USER" AUTO="$(AUTO)" ARGS="$(ARGS)" $(MAKE) -C "$$PWD" $(GOAL_TARGET) AUTO="$(AUTO)" ARGS="$(ARGS)"; \
 		elif command -v sudo >/dev/null 2>&1; then \
-			sudo -E env ORIGINAL_USER="$$ORIGINAL_USER" AUTO="$(AUTO)" ARGS="$(ARGS)" $(MAKE) -C "$$PWD" task AUTO="$(AUTO)" ARGS="$(ARGS)"; \
+			sudo -E env ORIGINAL_USER="$$ORIGINAL_USER" AUTO="$(AUTO)" ARGS="$(ARGS)" $(MAKE) -C "$$PWD" $(GOAL_TARGET) AUTO="$(AUTO)" ARGS="$(ARGS)"; \
 		elif command -v su >/dev/null 2>&1; then \
 			printf "$(COLOR_YELLOW)[WARNING]: 'pkexec' and 'sudo' are missing. Falling back to 'su'. Environment variables might not be preserved! Exporting environment variables manually...$(COLOR_END)\n"; \
-			su -c "export ORIGINAL_USER='$$ORIGINAL_USER'; export AUTO='$(AUTO)'; export ARGS='$(ARGS)'; $(MAKE) -C '$$PWD' task AUTO='$(AUTO)' ARGS='$(ARGS)'"; \
+			su -c "export ORIGINAL_USER='$$ORIGINAL_USER'; export AUTO='$(AUTO)'; export ARGS='$(ARGS)'; $(MAKE) -C '$$PWD' $(GOAL_TARGET) AUTO='$(AUTO)' ARGS='$(ARGS)'"; \
 		else \
 			printf "$(COLOR_RED)[ERROR]: None of 'pkexec', 'sudo' or 'su' packages were found for gaining privileges.$(COLOR_END)\n"; \
 			exit 1; \
