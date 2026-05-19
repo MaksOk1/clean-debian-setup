@@ -85,7 +85,7 @@ task:
 		fi; \
 	fi
 
-install:
+install: update-repo
 	@$(MAKE) ensure-root AUTO="0" ARGS=""
 	@printf "$(COLOR_GREEN)Current user: $$(whoami) (UID: $$(id -u))$(COLOR_END)\n"
 	@chmod +x "$$PWD/install.sh"
@@ -96,7 +96,7 @@ install:
 		AUTO="0" sh "$$PWD/install.sh"; \
 	fi
 
-install-auto:
+install-auto: update-repo
 	@$(MAKE) ensure-root AUTO="1" ARGS="-y"
 	@printf "$(COLOR_GREEN)Current user: $$(whoami) (UID: $$(id -u))$(COLOR_END)\n"
 	@chmod +x "$$PWD/install.sh"
