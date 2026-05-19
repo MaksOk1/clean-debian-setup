@@ -61,7 +61,10 @@ ensure-root:
 	fi
 
 task:
-	@$(MAKE) ensure-root AUTO="$(AUTO)" ARGS='$(ARGS)'
+	@if [ "$$(id -u)" -ne 0 ]; then \
+		$(MAKE) ensure-root AUTO="$(AUTO)" ARGS='$(ARGS)'; \
+		exit 0; \
+	fi
 	@printf "$(COLOR_GREEN)Current user: $$(whoami) (UID: $$(id -u))$(COLOR_END)\n"
 	@chmod +x "$$PWD/scripts/start.sh"
 	@printf "$(COLOR_GREEN)Made '$$PWD/scripts/start.sh' executable. Running it...$(COLOR_END)\n"
