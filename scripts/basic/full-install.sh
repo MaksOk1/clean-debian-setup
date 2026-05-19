@@ -26,25 +26,21 @@ fi
 
 log_info "Fetching package list..."
 
-raw_list=$(curl -sSfL --connect-timeout 10 "$URL/rs/apt/app.list") || die "Failed to download package list from URL"
+pkg_array=()
 
-IFS='|' read -r -a pkg_array <<< "$(echo "$raw_list" | tr -d '\r\n')"
+mapfile -t pkg_array < <(
+    curl -sSfL --connect-timeout 10 "$URL/rs/apt/basic.list" | 
+    sed -e 's/\r//g' -e '/^#/d' -e '/^$/d'
+) || die "Failed to download or parse package list."
 
 if [ ${#pkg_array[@]} -eq 0 ] || [ -z "${pkg_array[0]}" ]; then
-    die "Package list is empty or invalid."
+    die "Package list is empty, invalid, or contains only comments/empty lines."
 fi
-
-download_file() {
-    local src_url="$1"
-    local dest_path="$2"
-    log_info "Downloading: $src_url -> $dest_path"
-    curl -sSfL "$src_url" > "$dest_path" || die "Failed to download $src_url"
-}
 
 log_info "Updating apt package index..."
 apt update -y
 
-log_info "Installing basic apps"
+log_info "Installing apps: ${pkg_array[*]}"
 apt install "${pkg_array[@]}" -y
 
 log_success "FULL-scope apps successfully installed!"
