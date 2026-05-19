@@ -27,6 +27,9 @@ help: ## - show all targets of makefile
 
 run: update-repo task-wrapper ## - main run target (INTERACTIVE)
 
+update: update-repo ## - alias (1) for update-repo target
+upgrade: update-repo ## - alias (2) for update-repo target
+
 task-wrapper: task ## - (helper) wrapper of 'task' target
 	@printf "$(COLOR_GREEN)End of task!$(COLOR_END)\n"
 
