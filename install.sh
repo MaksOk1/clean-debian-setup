@@ -12,57 +12,33 @@ if [ "$EUID" -eq 0 ]; then
     exit 1
 fi
 
-if ! command -v make >/dev/null 2>&1; then
-    echo -e "\e[33m[WARNING]: 'make' utility is missing, but it is required to continue.\e[0m"
+MISSING_DEPS=""
+if ! command -v make >/dev/null 2>&1; then MISSING_DEPS="build-essential"; fi
+if ! command -v git >/dev/null 2>&1; then MISSING_DEPS="${MISSING_DEPS} git"; fi
+
+if [ -n "$MISSING_DEPS" ]; then
+    echo -e "\e[33m[WARNING]: Required utilities are missing, but it is required to continue: ${MISSING_DEPS}.\e[0m"
 
     if [ "$IS_AUTO" = "1" ]; then
         install_make="Y"
     else
-        read -rp "Do you want to install 'build-essential' (includes 'make') now? [Y/n]: " install_make
-        install_make=${install_make:-Y}
+        read -rp "Do you want to install them now? [Y/n]: " install_deps
+        install_deps=${install_deps:-Y}
     fi
 
-    if [[ "$install_make" =~ ^[Yy]$ ]]; then
-        echo -e "\e[32mInstalling build-essential... Authentication required.\e[0m"
-        # Використовуємо класичний sudo, бо Polkit (pkexec) на чистих серверах зазвичай немає
-        if sudo apt-get update && sudo apt-get install -y build-essential; then
-            echo -e "\e[32m'make' successfully installed!\e[0m"
+    if [[ "$install_deps" =~ ^[Yy]$ ]]; then
+        echo -e "\e[32mInstalling dependencies (${MISSING_DEPS})... Authentication required.\e[0m"
+        if sudo apt-get update && sudo apt-get install -y $MISSING_DEPS; then
+            echo -e "\e[32mDependencies successfully installed!\e[0m"
         else
-            echo -e "\e[31m[ERROR]: Failed to install packages. Please install 'make' manually.\e[0m\n"
+            echo -e "\e[31m[ERROR]: Failed to install packages. Please install missing ones manually ($MISSING_DEPS).\e[0m\n"
             exit 1
         fi
     else
-        echo -e "\e[31m[ERROR]: 'make' utility is not installed on your system.\e[0m"
-        echo -e "\e[31m[ERROR]: 'make' is required to run the installer. Stopping.\e[0m"
+        echo -e "\e[31m[ERROR]: Core utilities are not installed on your system.\e[0m"
         echo -e "\e[33m    Please install it first. On Debian/Ubuntu run:\e[0m"
-        echo -e "\e[33m        sudo apt update && sudo apt install -y build-essential\e[0m"
-        exit 1
-    fi
-fi
-
-if ! command -v git >/dev/null 2>&1; then
-    echo -e "\e[33m[WARNING]: 'git' utility is missing, but it is required to continue.\e[0m"
-
-    if [ "$IS_AUTO" = "1" ]; then
-        install_git="Y"
-    else
-        read -rp "Do you want to install 'git' now? [Y/n]: " install_git
-        install_git=${install_git:-Y}
-    fi
-
-    if [[ "$install_git" =~ ^[Yy]$ ]]; then
-        echo -e "\e[32mInstalling git... Authentication required.\e[0m"
-        if sudo apt-get update && sudo apt-get install -y git; then
-            echo -e "\e[32m'git' successfully installed!\e[0m"
-        else
-            echo -e "\e[31m[ERROR]: Failed to install packages. Please install 'git' manually.\e[0m\n"
-            exit 1
-        fi
-    else
-        echo -e "\e[31m[ERROR]: 'git' utility is not installed on your system.\e[0m"
-        echo -e "\e[31m[ERROR]: 'git' is required to run the installer. Stopping.\e[0m"
-        echo -e "\e[33m    Please install it first. On Debian/Ubuntu run:\e[0m"
-        echo -e "\e[33m        sudo apt update && sudo apt install -y git\e[0m"
+        echo -e "\e[33m        sudo apt update && sudo apt install -y $MISSING_DEPS\e[0m"
+        echo -e "\e[31m[ERROR]: Dependencies are required to run the installer. Stopping.\e[0m"
         exit 1
     fi
 fi
