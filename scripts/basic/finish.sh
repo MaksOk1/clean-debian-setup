@@ -1,10 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [ "$EUID" -ne 0 ]; then
-    echo -e "\e[31mPlease, re-run script as root (sudo).\e[0m"
-    exit 1
-fi
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly BLUE='\033[0;34m'
+readonly NC='\033[0m'
+
+log_info()    { echo -e "${BLUE}[INFO]${NC} $1"; }
+log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
+log_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
+log_err()     { echo -e "${RED}[ERROR]${NC} $1" >&2; }
+die()         { log_err "$1"; exit 1; }
+
+[ "$EUID" -ne 0 ] && die "Please, re-run script as root (sudo)."
 
 USER=${1:-}
 
@@ -16,7 +25,7 @@ if [ -z "$USER" ]; then
             break
         fi
 
-        echo -e "\e[31mSet 'USER' variable to continue.\e[0m"
+        log_warning "Set 'USER' variable to continue."
     done
 fi
 
@@ -28,13 +37,13 @@ else
 fi
 
 if [[ "$restart_systemd_login_service" =~ ^[Yy]$ ]]; then
-    echo "Restarting 'systemd-logind' service..."
+    log_info "Restarting 'systemd-logind' service..."
     systemctl restart systemd-logind.service
 
     if systemctl is-active --quiet systemd-logind.service; then
-        echo -e "\e[32mRestarted service successfully!\e[0m" # Need to make sure that it's correctly restarted. Maybe if pipe falls - echo will not be shown?
+        log_success "Restarted service successfully!" # Need to make sure that it's correctly restarted. Maybe if pipe falls - echo will not be shown?
     else
-        echo -e "\e[31mWarning: systemd-logind is not running properly!\e[0m"
+        log_warning "'systemd-logind' is not running properly!"
     fi
 fi
 
@@ -49,21 +58,23 @@ if [[ "$restart_ssh_services" =~ ^[Yy]$ ]]; then
     for service in ssh sshd; do
         if systemctl list-unit-files | grep -q "^${service}.service"; then
             systemctl restart "$service"
-            echo "Service '$service' restarted."
+            log_info "Service '$service' restarted."
+        else
+            log_warning "Service '$service' not restarted. Continuing..."
         fi
     done
-    echo -e "\e[32mSSH services restarted!\e[0m"
+    log_success "SSH services restarted!"
 fi
 
-echo "Copying '/etc/zsh/zshrc' to root's and user's ($USER's) home directories.."
+log_info "Copying '/etc/zsh/zshrc' to root's and user's ($USER's) home directories.."
 if [ -f /etc/zsh/zshrc ]; then
     mkdir -vp /root /home/"$USER"
     cp /etc/zsh/zshrc /root/.zshrc
     cp /etc/zsh/zshrc /home/$USER/.zshrc
     chown "$USER":"$USER" /home/"$USER"/.zshrc
-    echo -e "\e[32mCopied!\e[0m"
+    log_success "Copied!"
 else
-    echo -e "\e[33mWarning: /etc/zsh/zshrc not found. Skipping copy.\e[0m"
+    log_warning "'/etc/zsh/zshrc' not found. Skipping copying..."
 fi
 
 # update-grub
@@ -71,7 +82,8 @@ fi
 if command -v update-grub &>/dev/null; then
     update-grub
 else
-    echo "WARNING: 'update-grub' utility not found, try confirming changes to grub with: 'sudo grub-mkconfig -o /boot/grub/grub.cfg' or 'sudo grub2-mkconfig -o /boot/grub2/grub.cfg' or 'sudo grub2-mkconfig -o /boot/efi/EFI/fedora/grub.cfg'"
+    log_warning "'update-grub' utility not found, try confirming changes to grub with: 'sudo grub-mkconfig -o /boot/grub/grub.cfg' or 'sudo grub2-mkconfig -o /boot/grub2/grub.cfg' or 'sudo grub2-mkconfig -o /boot/efi/EFI/fedora/grub.cfg'"
+    log_warning "Shortcut adding option will be displayed..."
 
     if [ "${AUTO:-0}" = "1" ]; then
         set_debian_shortcut="N"
@@ -87,7 +99,8 @@ set -e
 exec grub-mkconfig -o /boot/grub/grub.cfg "$@"
 EOF
         chmod +x /usr/sbin/update-grub
-        echo -e "\e[32mShortcut /usr/sbin/update-grub created (and 'chmod +x ...' executed)!\e[0m"
+        log_success "Shortcut on '/usr/sbin/update-grub' created (and 'chmod +x ...' executed)!"
+        log_warning "Maybe terminal restart will be needed, or try: 'hash -r'"
     fi
 fi
 
@@ -103,7 +116,7 @@ ZSH_PATH=$(command -v zsh || echo "/usr/bin/zsh") # or /bin/zsh
 if [[ "$change_both_shell" =~ ^[Yy]$ ]]; then
     chsh -s "$ZSH_PATH" "$USER"
     chsh -s "$ZSH_PATH" root
-    echo -e "\e[32mChanged default shell for root and user ($USER)!\e[0m"
+    log_success "Changed default shell for root and user ($USER)!"
 else
     if [ "${AUTO:-0}" = "1" ]; then
         change_user_shell="Y"
@@ -113,7 +126,7 @@ else
     fi
     if [[ "$change_user_shell" =~ ^[Yy]$ ]]; then
         chsh -s "$ZSH_PATH" "$USER"
-        echo -e "\e[32mChanged default shell for user ($USER)!\e[0m"
+        log_success "Changed default shell for user ($USER)!"
     fi
 
     if [ "${AUTO:-0}" = "1" ]; then
@@ -124,8 +137,8 @@ else
     fi
     if [[ "$change_root_shell" =~ ^[Yy]$ ]]; then
         chsh -s "$ZSH_PATH" root
-        echo -e "\e[32mChanged default shell for root (UID 0)!\e[0m"
+        log_success "Changed default shell for root (UID 0)!"
     fi
 fi  
 
-echo -e "\e[32mAlright! You have now configured: ZSH and system basics!\e[0m"
+log_success "Alright! You have now configured: ZSH and system basics!"

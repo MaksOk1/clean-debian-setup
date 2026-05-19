@@ -1,10 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [ "$EUID" -ne 0 ]; then
-    echo -e "\e[31mPlease, re-run script as root (sudo).\e[0m"
-    exit 1
-fi
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly BLUE='\033[0;34m'
+readonly NC='\033[0m'
+
+log_info()    { echo -e "${BLUE}[INFO]${NC} $1"; }
+log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
+log_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
+log_err()     { echo -e "${RED}[ERROR]${NC} $1" >&2; }
+die()         { log_err "$1"; exit 1; }
+
+[ "$EUID" -ne 0 ] && die "Please, re-run script as root (sudo)."
 
 USER=${1:-}
 PASSWD=${2:-}
@@ -17,25 +26,26 @@ if [ -z "$USER" ]; then
             break
         fi
 
-        echo -e "\e[31mSet 'USER' variable to continue.\e[0m"
+        log_warning "Set 'USER' variable to continue."
     done
 fi
 
+# make prebasic feature apt list
 apt install sudo apt-transport-https -y
-echo -e "\e[32mBASE-scope apps (packages) successfully installed on system!\e[0m"
+log_success "BASE-scope apps (packages) successfully installed on system!"
 
-echo "Checking user ($USER) status..."
+log_info "Checking user ($USER) status..."
 
 if id "$USER" &>/dev/null; then
-    echo "Choosed user ($USER) exists. Skipping adding user."
+    log_info "Choosed user ($USER) exists. Skipping adding user."
 else
-    echo "Choosed user ($USER) does not exist on system."
+    log_info "Choosed user ($USER) does not exist on system."
     read -p "Create user ($USER)? [Y/n]: " create_user
     create_user=${create_user:-Y}
 
     if [[ "$create_user" =~ ^[Yy]$ ]]; then
         useradd -m "$USER"
-        echo "User ($USER) created successfully!"
+        log_success "User ($USER) created successfully!"
 
         read -p "Set password for user ($USER)? [Y/n]: " set_password
         set_password=${set_password:-Y}
@@ -60,22 +70,22 @@ else
                     if [ "$PASSWD" = "$PASSWD_CONFIRM" ]; then
                         break
                     else
-                        echo -e "\e[31mPasswords do not match. Try again.\e[0m"
+                        log_warning "\e[31mPasswords do not match. Try again.\e[0m"
                     fi
                 done
             fi
 
             echo "$USER:$PASSWD" | chpasswd
-            echo "Password for user ($USER) set successfully!"
+            log_success "Password for user ($USER) set successfully!"
         fi
     else
-        echo "User ($USER) creation skipped."
+        log_info "User ($USER) creation skipped."
         exit 0
     fi
 fi
 
 if [ -f "/etc/sudoers.d/$USER" ] || id -nG "$USER" | grep -qw "sudo"; then
-    echo "User ($USER) is already an admin."
+    log_info "User ($USER) is already an admin."
     if [ "$AUTO" = "1" ]; then
         make_admin="N"
     else
@@ -101,14 +111,15 @@ if [[ "$make_admin" =~ ^[Yy]$ ]]; then
 
     if [[ "$nopasswd_choice" =~ ^[Yy]$ ]]; then
         echo "$USER ALL=(ALL:ALL) NOPASSWD: ALL" > "/etc/sudoers.d/$USER"
-        echo -e "\e[32mSudoer configured ($USER). 'NOPASSWD' access mode.\e[0m"
+        log_success "Sudoer configured ($USER). 'NOPASSWD' access mode."
     else
         echo "$USER ALL=(ALL:ALL) ALL" > "/etc/sudoers.d/$USER"
-        echo -e "\e[32mSudoer configured ($USER). 'PASSWD' access mode.\e[0m"
+        log_success "Sudoer configured ($USER). 'PASSWD' access mode."
     fi
 
     chmod 440 "/etc/sudoers.d/$USER"
+    log_success "File mode for sudoer file '440' setted!"
 else
-    echo "Skipping sudoer configuration."
+    log_info "Skipping sudoer configuration."
 fi
 
