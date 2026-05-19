@@ -117,9 +117,16 @@ pull-force:
 	@git reset --hard origin/$$(git branch --show-current)
 
 reclone:
-	@export REPO_NAME=$$(basename `git rev-parse --show-toplevel`) ; \
-	export REPO_URL=$$(git config --get remote.origin.url) ; \
+	@export REPO_NAME=$$(basename `git rev-parse --show-toplevel 2>/dev/null`) ; \
+	export REPO_URL=$$(git config --get remote.origin.url 2>/dev/null) ; \
+	if [ -z "$$REPO_NAME" ] || [ -z "$$REPO_URL" ]; then \
+		printf "$(COLOR_RED)[ERROR] Nor a git repository or remote URL is missing!$(COLOR_END)\n"; \
+		exit 1; \
+	fi; \
+	echo "1: Data collected. Name: $$REPO_NAME" ; \
 	cd ../ ; \
-	rm -rf ./$$REPO_NAME ; \
-	git clone $$REPO_URL $$REPO_NAME ; \
-	cd ./$$REPO_NAME
+	echo "2: Moved to parent directory" ; \
+	rm -rf "./$$REPO_NAME" ; \
+	echo "3: Old directory removed safely" ; \
+	git clone "$$REPO_URL" "$$REPO_NAME" ; \
+	echo "4: Clone completed successfully!"
