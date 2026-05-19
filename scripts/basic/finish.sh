@@ -20,8 +20,13 @@ if [ -z "$USER" ]; then
     done
 fi
 
-read -rp "Restart 'systemd-logind' service? [y/N]: " restart_systemd_login_service
-restart_systemd_login_service=${restart_systemd_login_service:-N}
+if [ "${AUTO:-0}" = "1" ]; then
+    restart_systemd_login_service="N"
+else
+    read -rp "Restart 'systemd-logind' service? [y/N]: " restart_systemd_login_service
+    restart_systemd_login_service=${restart_systemd_login_service:-N}
+fi
+
 if [[ "$restart_systemd_login_service" =~ ^[Yy]$ ]]; then
     echo "Restarting 'systemd-logind' service..."
     systemctl restart systemd-logind.service
@@ -33,8 +38,13 @@ if [[ "$restart_systemd_login_service" =~ ^[Yy]$ ]]; then
     fi
 fi
 
-read -rp "Restart 'ssh' and 'sshd' services? [Y/n]: " restart_ssh_services
-restart_ssh_services=${restart_ssh_services:-Y}
+if [ "${AUTO:-0}" = "1" ]; then
+    restart_ssh_services="Y"
+else
+    read -rp "Restart 'ssh' and 'sshd' services? [Y/n]: " restart_ssh_services
+    restart_ssh_services=${restart_ssh_services:-Y}
+fi
+
 if [[ "$restart_ssh_services" =~ ^[Yy]$ ]]; then
     for service in ssh sshd; do
         if systemctl list-unit-files | grep -q "^${service}.service"; then
@@ -62,8 +72,13 @@ if command -v update-grub &>/dev/null; then
     update-grub
 else
     echo "WARNING: 'update-grub' utility not found, try confirming changes to grub with: 'sudo grub-mkconfig -o /boot/grub/grub.cfg' or 'sudo grub2-mkconfig -o /boot/grub2/grub.cfg' or 'sudo grub2-mkconfig -o /boot/efi/EFI/fedora/grub.cfg'"
-    read -rp "Set-up custom shortcut for 'update-grub' (debian)? [y/N]: " set_debian_shortcut
-    set_debian_shortcut=${set_debian_shortcut:-N}
+
+    if [ "${AUTO:-0}" = "1" ]; then
+        set_debian_shortcut="N"
+    else
+        read -rp "Set-up custom shortcut for 'update-grub' (debian)? [y/N]: " set_debian_shortcut
+        set_debian_shortcut=${set_debian_shortcut:-N}
+    fi
 
     if [[ "$set_debian_shortcut" =~ ^[Yy]$ ]]; then
         cat << 'EOF' > /usr/sbin/update-grub
@@ -76,8 +91,12 @@ EOF
     fi
 fi
 
-read -rp "Change default shell to ZSH for root and user ($USER)? [Y/n]: " change_both_shell
-change_both_shell=${change_both_shell:-Y}
+if [ "${AUTO:-0}" = "1" ]; then
+    change_both_shell="Y"
+else
+    read -rp "Change default shell to ZSH for root and user ($USER)? [Y/n]: " change_both_shell
+    change_both_shell=${change_both_shell:-Y}
+fi
 
 ZSH_PATH=$(command -v zsh || echo "/usr/bin/zsh") # or /bin/zsh
 
@@ -86,15 +105,23 @@ if [[ "$change_both_shell" =~ ^[Yy]$ ]]; then
     chsh -s "$ZSH_PATH" root
     echo -e "\e[32mChanged default shell for root and user ($USER)!\e[0m"
 else
-    read -rp "Change default shell to ZSH for user ($USER)? [Y/n]: " change_user_shell
-    change_user_shell=${change_user_shell:-Y}
+    if [ "${AUTO:-0}" = "1" ]; then
+        change_user_shell="Y"
+    else
+        read -rp "Change default shell to ZSH for user ($USER)? [Y/n]: " change_user_shell
+        change_user_shell=${change_user_shell:-Y}
+    fi
     if [[ "$change_user_shell" =~ ^[Yy]$ ]]; then
         chsh -s "$ZSH_PATH" "$USER"
         echo -e "\e[32mChanged default shell for user ($USER)!\e[0m"
     fi
 
-    read -rp "Change default shell to ZSH for root (UID 0)? [Y/n]: " change_root_shell
-    change_root_shell=${change_root_shell:-Y}
+    if [ "${AUTO:-0}" = "1" ]; then
+        change_root_shell="Y"
+    else
+        read -rp "Change default shell to ZSH for root (UID 0)? [Y/n]: " change_root_shell
+        change_root_shell=${change_root_shell:-Y}
+    fi
     if [[ "$change_root_shell" =~ ^[Yy]$ ]]; then
         chsh -s "$ZSH_PATH" root
         echo -e "\e[32mChanged default shell for root (UID 0)!\e[0m"

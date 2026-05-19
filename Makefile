@@ -72,7 +72,8 @@ task:
 			AUTO="$$IS_AUTO" bash "$$PWD/scripts/start.sh"; \
 		else \
 			AUTO="$$IS_AUTO" sh "$$PWD/scripts/start.sh"; \
-		fi
+		fi; \
+	fi
 
 install:
 	@$(MAKE) ensure-root

@@ -9,8 +9,13 @@ fi
 URL=${1:-}
 
 if [ -z "$URL" ]; then
-    read -p "Enter base config URL (default: https://raw.github.com/MaksOk1/clean-debian-setup/main): " URL
-    URL=${URL:-https://raw.github.com/MaksOk1/clean-debian-setup/main}
+    if [ "${AUTO:-0}" = "1" ]; then
+    echo -e "\e[31mSelected automatically: https://raw.github.com/MaksOk1/clean-debian-setup/main\e[0m"
+        URL="https://raw.github.com/MaksOk1/clean-debian-setup/main"
+    else
+        read -p "Enter base config URL (default: https://raw.github.com/MaksOk1/clean-debian-setup/main): " URL
+        URL=${URL:-https://raw.github.com/MaksOk1/clean-debian-setup/main}
+    fi
 fi
 
 

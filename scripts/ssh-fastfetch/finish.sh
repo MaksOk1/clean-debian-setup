@@ -8,11 +8,16 @@ fi
 
 # systemctl restart sshd
 # systemctl restart ssh
-read -rp "Restart 'ssh' and 'sshd' services? [Y/n]: " restart_ssh_services
-restart_ssh_services=${restart_ssh_services:-Y}
+if [ "${AUTO:-0}" = "1" ]; then
+    restart_ssh_services="Y"
+else
+    read -rp "Restart 'ssh' and 'sshd' services? [Y/n]: " restart_ssh_services
+    restart_ssh_services=${restart_ssh_services:-Y}
+fi
+
 if [[ "$restart_ssh_services" =~ ^[Yy]$ ]]; then
     for service in ssh sshd; do
-        if systemctl list-unit-files | grep -q "^${service}.service"; then
+        if systemctl is-active "$service" >/dev/null 2>&1 || systemctl is-enabled "$service" >/dev/null 2>&1; then
             systemctl restart "$service"
             echo "Service '$service' restarted."
         fi

@@ -10,6 +10,11 @@ USER=${1:-}
 URL=${2:-}
 
 if [ -z "$USER" ]; then
+    # if [ "${AUTO:-0}" = "1" ]; then
+
+    # else
+
+    # fi
     while true; do
         read -rp "Make system changes for user (enter username): " USER
 
@@ -52,8 +57,12 @@ fi
 
 echo "Updating GRUB timeout..."
 while true; do
-    read -p "Enter GRUB timeout for system startup (default: 2): " grub_timeout
-    grub_timeout=${grub_timeout:-2}
+    if [ "${AUTO:-0}" = "1" ]; then
+        grub_timeout=2
+    else
+        read -p "Enter GRUB timeout for system startup (default: 2): " grub_timeout
+        grub_timeout=${grub_timeout:-2}
+    fi
 
     if [[ "$grub_timeout" =~ ^[0-9]+$ ]]; then
         mkdir -vp /etc/default
