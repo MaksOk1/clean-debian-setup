@@ -75,6 +75,17 @@ else
     log_warning "'/etc/zsh/zshrc' not found. Skipping copying..."
 fi
 
+log_info "Copying '/etc/zsh/zshenv' to root's and user's ($USER's) home directories.."
+if [ -f /etc/zsh/zshenv ]; then
+    mkdir -vp /root /home/"$USER"
+    cp /etc/zsh/zshenv /root/.zshenv
+    cp /etc/zsh/zshenv /home/$USER/.zshenv
+    chown "$USER":"$USER" /home/"$USER"/.zshenv
+    log_success "Copied!"
+else
+    log_warning "'/etc/zsh/zshenv' not found. Skipping copying..."
+fi
+
 # update-grub
 # update-grub2
 if command -v update-grub &>/dev/null; then

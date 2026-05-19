@@ -70,7 +70,7 @@ download_file "$URL/rs/etc/ssh/sshd_config.d/00-basic.conf" /etc/ssh/sshd_config
 
 mkdir -vp /etc/zsh/
 download_file "$URL/rs/etc/zsh/zshrc" /etc/zsh/zshrc
-# zshenv
+download_file "$URL/rs/etc/zsh/zshenv" /etc/zsh/zshenv
 download_file "$URL/rs/etc/zsh/aliases.zsh" /usr/share/oh-my-zsh/custom/aliases.zsh
 
 log_info "Setting up Oh My Zsh..."
