@@ -26,11 +26,17 @@ else
 	override ARGS :=
 endif
 
+ifneq ($(filter run,$(MAKECMDGOALS)),)
+    run: update-repo task-wrapper
+else ifeq ($(MAKECMDGOALS),)
+    run: update-repo task-wrapper
+endif
+
 help: ## - show all targets of makefile
 	@echo "Targets:"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sed 's/^.*Makefile://g' | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m make %-15s\033[0m %s\n", $$1, $$2}'
 
-run: update-repo task-wrapper ## - main run target (INTERACTIVE)
+run: task-wrapper ## - main run target (INTERACTIVE)
 
 auto: install-auto ## - alias (1) for install-auto target (AUTO)
 
@@ -100,8 +106,7 @@ task: ## - core task
 		fi; \
 	fi
 
-install: ## - install with helper 'install.sh' in 'INTERACTIVE mode'
-	@$(MAKE) update-repo
+install: update-repo ## - install with helper 'install.sh' in 'INTERACTIVE mode'
 	@chmod +x "$$PWD/install.sh"
 	@printf "$(COLOR_GREEN)Made '$$PWD/install.sh' executable. Running it...$(COLOR_END)\n"
 	@if command -v bash >/dev/null 2>&1; then \
@@ -110,8 +115,7 @@ install: ## - install with helper 'install.sh' in 'INTERACTIVE mode'
 		AUTO="0" sh "$$PWD/install.sh"; \
 	fi
 
-install-auto: ## - install with helper 'install.sh' in 'AUTO mode'
-	@$(MAKE) update-repo
+install-auto: update-repo ## - install with helper 'install.sh' in 'AUTO mode'
 	@chmod +x "$$PWD/install.sh"
 	@printf "$(COLOR_GREEN)Made '$$PWD/install.sh' executable. Running it...$(COLOR_END)\n"
 	@if command -v bash >/dev/null 2>&1; then \
