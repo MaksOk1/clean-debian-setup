@@ -63,13 +63,13 @@ ensure-root:
 task:
 	@$(MAKE) ensure-root AUTO="$(AUTO)" ARGS='$(ARGS)'
 	@printf "$(COLOR_GREEN)Current user: $$(whoami) (UID: $$(id -u))$(COLOR_END)\n"
-	@chmod +x "$$PWD/run.sh"
-	@printf "$(COLOR_GREEN)Made '$$PWD/start.sh' executable. Running it...$(COLOR_END)\n"
+	@chmod +x "$$PWD/scripts/start.sh"
+	@printf "$(COLOR_GREEN)Made '$$PWD/scripts/start.sh' executable. Running it...$(COLOR_END)\n"
 	@IS_AUTO=0; if [ "$(AUTO)" = "1" ] || [ "$(ARGS)" = "-y" ]; then IS_AUTO=1; fi; \
 	if command -v bash >/dev/null 2>&1; then \
-		AUTO="$$IS_AUTO" bash "$$PWD/run.sh"; \
+		AUTO="$$IS_AUTO" bash "$$PWD/scripts/start.sh"; \
 	else \
-		AUTO="$$IS_AUTO" sh "$$PWD/run.sh"; \
+		AUTO="$$IS_AUTO" sh "$$PWD/scripts/start.sh"; \
 	fi
 
 install:
