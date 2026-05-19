@@ -11,6 +11,9 @@ COLOR_YELLOW=\\e[33m
 COLOR_BLUE=\\e[34m
 COLOR_END=\\e[0m
 
+export AUTO
+export ARGS
+
 ifneq ($(filter auto install-auto,$(MAKECMDGOALS)),)
     override AUTO := 1
     override ARGS := -y
@@ -118,7 +121,7 @@ install-auto: ## - install with helper 'install.sh' in 'AUTO mode'
 	@chmod +x "$$PWD/install.sh"
 	@printf "$(COLOR_GREEN)Made '$$PWD/install.sh' executable. Running it...$(COLOR_END)\n"
 	@if command -v bash >/dev/null 2>&1; then \
-		AUTO="1" bash "$$PWD/install.sh -y"; \
+		AUTO="1" bash "$$PWD/install.shЄ -y; \
 	else \
 		AUTO="1" sh "$$PWD/install.sh -y"; \
 	fi
