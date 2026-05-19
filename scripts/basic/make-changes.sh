@@ -43,10 +43,6 @@ download_file() {
     local dest_path="$2"
     log_info "Downloading: $src_url -> $dest_path"
     curl -sSf "$src_url" > "$dest_path" || die "Failed to download $src_url"
-    # if ! curl -sSf "$src_url" > "$dest_path"; then
-    #     echo -e "\e[31mERROR: Failed to download $src_url\e[0m"
-    #     return 1
-    # fi
 }
 
 log_info "Downloading configurations..."
@@ -96,7 +92,7 @@ while true; do
 
     if [[ "$grub_timeout" =~ ^[0-9]+$ ]]; then
         mkdir -vp /etc/default
-        if [ ! -f "/etc/default/grub" ] && touch /etc/default/grub
+        [ ! -f "/etc/default/grub" ] && touch /etc/default/grub
         
         if grep -q "^GRUB_TIMEOUT=" /etc/default/grub; then
             sed -i "s/GRUB_TIMEOUT=.*$/GRUB_TIMEOUT=$grub_timeout/" /etc/default/grub
