@@ -61,8 +61,7 @@ if [ -n "$MISSING_DEPS" ]; then
 fi
 
 if [ "$IS_AUTO" = "1" ]; then
-    # make run AUTO=1
-    make run ARGS="-y"
+    make run AUTO=1 ARGS="-y"
 else
-    make run
+    make run AUTO=0 ARGS=""
 fi
