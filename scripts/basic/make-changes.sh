@@ -11,7 +11,7 @@ log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
 log_err() { echo -e "${RED}[ERROR]${NC} $1" >&2; }
 die() { log_err "$1"; exit 1; }
 
-if [ "$EUID" -ne 0 ] && die "Please, re-run script as root (sudo)."
+[ "$EUID" -ne 0 ] && die "Please, re-run script as root (sudo)."
 
 USER=${1:-}
 URL=${2:-}
