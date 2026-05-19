@@ -76,16 +76,28 @@ fi
 
 if [ -f "/etc/sudoers.d/$USER" ] || id -nG "$USER" | grep -qw "sudo"; then
     echo "User ($USER) is already an admin."
-    read -p "Do you want to change sudo access type (passwd/nopasswd)? [y/N]: " change_admin
-    make_admin=${change_admin:-N}
+    if [ "$AUTO" = "1" ]; then
+        make_admin="N"
+    else
+        read -p "Do you want to change sudo access type (passwd/nopasswd)? [y/N]: " change_admin
+        make_admin=${change_admin:-N}
+    fi
 else
-    read -p "Make user ($USER) admin (sudoer)? [Y/n]: " make_admin
-    make_admin=${make_admin:-Y}
+    if [ "$AUTO" = "1" ]; then
+        make_admin="Y"
+    else
+        read -p "Make user ($USER) admin (sudoer)? [Y/n]: " make_admin
+        make_admin=${make_admin:-Y}
+    fi
 fi
 
 if [[ "$make_admin" =~ ^[Yy]$ ]]; then
-    read -p "Enable NOPASSWD for sudoer ($USER)? [y/N]: " nopasswd_choice
-    nopasswd_choice=${nopasswd_choice:-N}
+    if [ "$AUTO" = "1" ]; then
+        nopasswd_choice="N"
+    else
+        read -p "Enable NOPASSWD for sudoer ($USER)? [y/N]: " nopasswd_choice
+        nopasswd_choice=${nopasswd_choice:-N}
+    fi
 
     if [[ "$nopasswd_choice" =~ ^[Yy]$ ]]; then
         echo "$USER ALL=(ALL:ALL) NOPASSWD: ALL" > "/etc/sudoers.d/$USER"
