@@ -27,14 +27,25 @@ if [ -z "$USER" ]; then
 fi
 
 if [ -z "$URL" ]; then
-    read -p "Enter base config URL (default: https://raw.github.com/MaksOk1/clean-debian-setup/main): " URL
-    URL=${URL:-https://raw.github.com/MaksOk1/clean-debian-setup/main}
+    read -p "Enter base config URL (default: https://raw.githubusercontent.com/MaksOk1/clean-debian-setup/main): " URL
+    URL=${URL:-https://raw.githubusercontent.com/MaksOk1/clean-debian-setup/main}
 fi
 
 OMZ_DIR="/usr/share/oh-my-zsh"
 
 echo "Downloading configurations..."
-curl -sSf "$URL/rs/etc/skel/.zshrc" > /etc/skel/.zshrc
+
+download_file() {
+    local src_url="$1"
+    local dest_path="$2"
+    if ! curl -sSf "$src_url" > "$dest_path"; then
+        echo -e "\e[31mERROR: Failed to download $src_url\e[0m"
+        return 1
+    fi
+}
+
+mkdir -vp /etc/skel
+download_file "$URL/rs/etc/skel/.zshrc" /etc/skel/.zshrc
 
 if [ -n "$USER" ] && id "$USER" &>/dev/null; then
     USER_HOME=$(eval echo "~$USER")
@@ -42,15 +53,14 @@ if [ -n "$USER" ] && id "$USER" &>/dev/null; then
     chown "$USER:$USER" "$USER_HOME/.zshrc"
 fi
 
-# curl -sSf "$URL/rs/etc/skel/.zshrc" >> /etc/zsh/zshrc
 mkdir -vp /etc/systemd/logind.conf.d/
-curl -sSf "$URL/rs/etc/systemd/logind.conf" > /etc/systemd/logind.conf.d/custom.conf
+download_file "$URL/rs/etc/systemd/logind.conf" /etc/systemd/logind.conf.d/custom.conf
 
 mkdir -vp /etc/systemd/sleep.conf.d/
-curl -sSf "$URL/rs/etc/systemd/sleep.conf.d/nosuspend.conf" > /etc/systemd/sleep.conf.d/nosuspend.conf
+download_file "$URL/rs/etc/systemd/sleep.conf.d/nosuspend.conf" /etc/systemd/sleep.conf.d/nosuspend.conf
 
 mkdir -vp /etc/ssh/sshd_config.d/
-curl -sSf "$URL/rs/etc/ssh/sshd_config.d/00-basic.conf" > /etc/ssh/sshd_config.d/00-basic.conf
+download_file "$URL/rs/etc/ssh/sshd_config.d/00-basic.conf" /etc/ssh/sshd_config.d/00-basic.conf
 
 echo "Setting up Oh My Zsh..."
 if [ -d "$OMZ_DIR/.git" ]; then
@@ -64,11 +74,6 @@ else
 fi
 
 echo "Updating GRUB timeout..."
-# if grep -q "^GRUB_TIMEOUT=" /etc/default/grub; then
-#     sed -i "s/^GRUB_TIMEOUT=.*$/GRUB_TIMEOUT=$grub_timeout/" /etc/default/grub
-# else
-#     echo "GRUB_TIMEOUT=$grub_timeout" >> /etc/default/grub
-# fi
 while true; do
     if [ "${AUTO:-0}" = "1" ]; then
         grub_timeout=2
@@ -79,9 +84,26 @@ while true; do
 
     if [[ "$grub_timeout" =~ ^[0-9]+$ ]]; then
         mkdir -vp /etc/default
-        sed -i "s/GRUB_TIMEOUT=.*$/GRUB_TIMEOUT=$grub_timeout/" /etc/default/grub
+        if [ -n "/etc/default/grub" ]; then
+            touch /etc/default/grub
+        fi
+        
+        if grep -q "^GRUB_TIMEOUT=" /etc/default/grub; then
+            sed -i "s/GRUB_TIMEOUT=.*$/GRUB_TIMEOUT=$grub_timeout/" /etc/default/grub
+        else
+            echo "GRUB_TIMEOUT=$grub_timeout" >> /etc/default/grub
+        fi
+
         echo "GRUB timeout successfully set to '$grub_timeout' seconds."
+
+        if command -v update-grub &>/dev/null; then
+            update-grub
+        else
+            grub-mkconfig -o /boot/grub/grub.cfg
+        fi
+
         break
+            echo "GRUB timeout successfully set to '$grub_timeout' seconds."
     else
         echo "ERROR: Please enter a valid number."
     fi

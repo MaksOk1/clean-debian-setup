@@ -177,7 +177,7 @@ else
     fi
 fi
 
-URL='https://raw.github.com/MaksOk1/clean-debian-setup/main'
+URL='https://raw.githubusercontent.com/MaksOk1/clean-debian-setup/main'
 
 # FEATURES rename !
 FOLDER_BASE="$(pwd)/scripts"
