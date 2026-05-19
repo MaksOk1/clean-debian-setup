@@ -113,7 +113,7 @@ if (( ${${(@f)"$(</etc/os-release)"}[(I)ID*=*ubuntu]} )) &&
 fi
 
 #export ZSH="/usr/share/oh-my-zsh"
-#ZSH_THEME="robbyrussell"
-#plugins=(git)
+ZSH_THEME="robbyrussell"
+plugins=(git)
 
-#source $ZSH/oh-my-zsh.sh
+source $ZSH/oh-my-zsh.sh
