@@ -75,9 +75,9 @@ ensure-root: ## - (helper) root gainer target
 		printf "$(COLOR_YELLOW)Root privileges are needed. Authentication needed...$(COLOR_END)\n"; \
 		export ORIGINAL_USER=$$(whoami); \
 		if [ -n "$$DISPLAY" ] && command -v pkexec >/dev/null 2>&1; then \
-			pkexec env PATH="$$PATH" ORIGINAL_USER="$$ORIGINAL_USER" AUTO="$(AUTO)" ARGS="$(ARGS)" $(MAKE) -C "$$PWD" $(GOAL_TARGET) AUTO="$(AUTO)" ARGS="$(ARGS)"; \
+			pkexec env PATH="$$PATH" ORIGINAL_USER="$$ORIGINAL_USER" AUTO="$(AUTO)" ARGS="$(ARGS)" $(MAKE) -C "$$PWD" $(GOAL_TARGET)"; \
 		elif command -v sudo >/dev/null 2>&1; then \
-			sudo -E env ORIGINAL_USER="$$ORIGINAL_USER" AUTO="$(AUTO)" ARGS="$(ARGS)" $(MAKE) -C "$$PWD" $(GOAL_TARGET) AUTO="$(AUTO)" ARGS="$(ARGS)"; \
+			sudo -E env ORIGINAL_USER="$$ORIGINAL_USER" AUTO="$(AUTO)" ARGS="$(ARGS)" $(MAKE) -C "$$PWD" $(GOAL_TARGET)"; \
 		elif command -v su >/dev/null 2>&1; then \
 			printf "$(COLOR_YELLOW)[WARNING]: 'pkexec' and 'sudo' are missing. Falling back to 'su'. Environment variables might not be preserved! Exporting environment variables manually...$(COLOR_END)\n"; \
 			su -c "export ORIGINAL_USER='$$ORIGINAL_USER'; export AUTO='$(AUTO)'; export ARGS='$(ARGS)'; $(MAKE) -C '$$PWD' $(GOAL_TARGET) AUTO='$(AUTO)' ARGS='$(ARGS)'"; \
