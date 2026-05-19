@@ -69,9 +69,9 @@ mkdir -vp /etc/ssh/sshd_config.d/
 download_file "$URL/rs/etc/ssh/sshd_config.d/00-basic.conf" /etc/ssh/sshd_config.d/00-basic.conf
 
 mkdir -vp /etc/zsh/
-download_file "$URL/rs/etc/zshrc" /etc/zsh/zshrc
+download_file "$URL/rs/etc/zsh/zshrc" /etc/zsh/zshrc
 # zshenv
-download_file "$URL/rs/etc/aliases.zsh" /usr/share/oh-my-zsh/custom/aliases.zsh
+download_file "$URL/rs/etc/zsh/aliases.zsh" /usr/share/oh-my-zsh/custom/aliases.zsh
 
 log_info "Setting up Oh My Zsh..."
 if [ -d "$OMZ_DIR/.git" ]; then
