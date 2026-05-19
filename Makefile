@@ -96,3 +96,17 @@ install-auto:
 	else \
 		sh "$$PWD/install.sh -y"; \
 	fi
+
+pull:
+	@git pull
+
+pull-force:
+	@git fetch --all
+	@git reset --hard origin/$$(git branch --show-current)
+
+reclone:
+	@export REPO_NAME=$$(basename `git rev-parse --show-toplevel`) ; \
+	export REPO_URL=$$(git config --get remote.origin.url) ; \
+	cd ../ && \
+	rm -rf ./$$REPO_NAME && \
+	git clone $$REPO_URL $$REPO_NAME
