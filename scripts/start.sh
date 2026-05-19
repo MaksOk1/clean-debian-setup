@@ -187,7 +187,7 @@ BASH_PATH=$(which bash || command -v bash || echo "/usr/bin/bash") # or '/bin/ba
 
 # Automatically set 'chmod +x'
 echo "Making set-up scripts executable..."
-chmod -R +x "$FOLDER_BASE"
+chmod -R +x "$FOLDER_BASE/"
 echo -e "\e[32mDone! Executing features set-up...\e[0m"
 
 # Base installation of packages and oh-my-zsh configuration
