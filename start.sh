@@ -15,8 +15,14 @@ PASSWD=${2:-}
 export AUTO="${AUTO:-0}"
 IS_AUTO="$AUTO"
 
+if [ "$IS_AUTO" = "1" ]; then
+    MODE_TEXT="\e[35mAUTOMATIC\e[32m"
+else
+    MODE_TEXT="\e[36mINTERACTIVE\e[32m"
+fi
+
 echo -e "\e[32mDetected 'USER' - ($USER).\e[0m"
-echo -e "\e[32mMode selected - ($(if [ "$IS_AUTO" = "1" ]; then echo "AUTOMATIC"; else echo "INTERACTIVE"; fi))\e[0m"
+echo -e "\e[32mMode selected - ($MODE_TEXT).\e[0m"
 if [ -n "$USER" ]; then
     if [ "$IS_AUTO" = "1" ]; then
 		continue_script="Y"
@@ -194,6 +200,6 @@ echo -e "\e[32mSetted-up: Fastfetch feature!\e[0m"
 # Clean-up
 echo -e "\e[32mAll features setted up! Cleaning...\e[0m"
 "$BASH_PATH" "$FOLDER_BASE/cleanup.sh"
-echo -e "\e[32mClean-up completed!\e[0"
+echo -e "\e[32mClean-up completed!\e[0m"
 
 echo -e "\e[32mNow it is recommended to reboot the machine!\nAll done!\e[0m"
