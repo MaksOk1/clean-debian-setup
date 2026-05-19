@@ -26,7 +26,8 @@ else
 	override ARGS :=
 endif
 
-GOAL_TARGET := $(if $(MAKECMDGOALS),$(MAKECMDGOALS),$(.DEFAULT_GOAL))
+# GOAL_TARGET := $(if $(MAKECMDGOALS),$(MAKECMDGOALS),$(.DEFAULT_GOAL))
+GOAL_TARGET := $(if $(MAKECMDGOALS),$(firstword $(MAKECMDGOALS)),$(.DEFAULT_GOAL))
 
 help: ## - show all targets of makefile
 	@echo "Targets:"
