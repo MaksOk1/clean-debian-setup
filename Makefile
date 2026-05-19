@@ -2,11 +2,11 @@ MAKEFLAGS += --no-print-directory --silent # or '-s'
 
 .PHONY: run task-wrapper task update-repo ensure-root
 
-COLOR_RED="\e[31m"
-COLOR_GREEN="\e[32m"
-COLOR_YELLOW="\e[33m"
-COLOR_BLUE="\e[34m"
-COLOR_END="\e[0m"
+COLOR_RED=\\e[31m
+COLOR_GREEN=\\e[32m
+COLOR_YELLOW=\\e[33m
+COLOR_BLUE=\\e[34m
+COLOR_END=\\e[0m
 
 run: update-repo task-wrapper
 
